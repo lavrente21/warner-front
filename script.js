@@ -1,5 +1,5 @@
 // CONFIGURAÇÃO GLOBAL
-const API_URL = "https://warnermedia-api.onrender.com"; // URL do seu Backend no Render
+const API_URL = "https://warnermidia-api.onrender.com"; // URL do seu Backend no Render
 
 // --- UTILITÁRIOS ---
 function toast(mensagem) {
