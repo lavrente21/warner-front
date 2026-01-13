@@ -6,12 +6,16 @@ function toast(mensagem) {
     alert(mensagem); // Pode substituir por um elemento visual depois
 }
 
-// --- LÓGICA DE REGISTRO ---
+// --- LÓGICA DE REGISTRO (ATUALIZADA COM COLUNA DE CONVITE) ---
 async function registro() {
     const nome = document.getElementById('nome-registro').value;
     const email = document.getElementById('email-registro').value;
     const senha = document.getElementById('senha-registro').value;
     const senhaConfirm = document.getElementById('senha-registro-confirm').value;
+    
+    // CAPTURA O CÓDIGO DE CONVITE DA COLUNA (CAMPO) QUE ADICIONAMOS
+    const refInput = document.getElementById('reg-ref');
+    const ref = refInput ? refInput.value : null;
 
     if (!nome || !email || !senha) return toast("Preencha todos os campos!");
     if (senha !== senhaConfirm) return toast("As senhas não coincidem!");
@@ -20,11 +24,11 @@ async function registro() {
         const res = await fetch(`${API_URL}/api/registrar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, email, senha })
+            body: JSON.stringify({ nome, email, senha, ref }) // 'ref' adicionado aqui
         });
         const data = await res.json();
         if (res.ok) {
-            toast("Conta criada com sucesso!");
+            toast("Conta criada com sucesso! Seu código: " + data.referral_id);
             window.location.href = 'login.html';
         } else {
             toast(data.error || "Erro ao registrar");
@@ -70,6 +74,12 @@ function carregarDadosUsuario() {
         const nomeElement = document.getElementById('user-name');
         if (saldoElement) saldoElement.innerText = `${user.saldo} Kz`;
         if (nomeElement) nomeElement.innerText = user.nome;
+
+        // ADICIONADO: Gerar Link de Convite automático se houver o campo na tela
+        const linkEl = document.getElementById('link-convite');
+        if (linkEl && user.referral_id) {
+            linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${user.referral_id}`;
+        }
     }
 }
 
@@ -98,9 +108,6 @@ async function finalizarDeposito() {
     } catch (err) { toast("Erro ao enviar"); }
 }
 
-// Executar ao carregar a página
-window.onload = carregarDadosUsuario;
-
 async function atualizarSaldoReal() {
     const user = JSON.parse(localStorage.getItem('usuario'));
     if (!user) return;
@@ -111,6 +118,7 @@ async function atualizarSaldoReal() {
         if (res.ok) {
             // Atualiza o saldo na tela e no localStorage
             user.saldo = data.saldo;
+            user.referral_id = data.referral_id; // Garante que temos o ID de convite
             localStorage.setItem('usuario', JSON.stringify(user));
             const saldoElement = document.querySelector('.balance-amount');
             if (saldoElement) saldoElement.innerText = `${data.saldo} Kz`;
@@ -118,12 +126,44 @@ async function atualizarSaldoReal() {
     } catch (err) { console.error("Erro ao atualizar saldo"); }
 }
 
-// Chame essa função dentro do window.onload
+// --- ADICIONADO: LÓGICA ESPECÍFICA DE EQUIPE ---
+async function carregarDadosEquipe() {
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    if (!user || !user.referral_id) return;
+
+    try {
+        const res = await fetch(`${API_URL}/api/equipe/${user.referral_id}`);
+        if (res.ok) {
+            const data = await res.json();
+            const countEl = document.getElementById('team-size-val');
+            const bonusEl = document.getElementById('team-bonus-val');
+            
+            if (countEl) countEl.innerText = data.teamCount;
+            if (bonusEl) bonusEl.innerText = `${data.teamBonus} Kz`;
+        }
+    } catch (err) { console.error("Erro ao carregar equipe"); }
+}
+
+// --- ADICIONADO: COPIAR LINK ---
+function copiarLink() {
+    const texto = document.getElementById('link-convite').innerText;
+    navigator.clipboard.writeText(texto).then(() => {
+        toast("✅ Link de convite copiado!");
+    });
+}
+
+// Chame essa função dentro do window.onload atualizado
 window.onload = () => {
     carregarDadosUsuario();
     atualizarSaldoReal();
-};
+    carregarDadosEquipe(); // Chamada de equipe adicionada
 
+    // Auto-preencher código de convite se estiver na página de registro
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    const inputRef = document.getElementById('reg-ref');
+    if (ref && inputRef) inputRef.value = ref;
+};
 
 // Função para buscar dados novos do servidor e atualizar a tela
 async function sincronizarDados() {
@@ -144,6 +184,9 @@ async function sincronizarDados() {
 
             if (nomeElement) nomeElement.innerText = userAtualizado.nome;
             if (saldoElement) saldoElement.innerText = `${userAtualizado.saldo} Kz`;
+            
+            // Sincroniza também a equipe
+            carregarDadosEquipe();
         }
     } catch (err) {
         console.error("Erro ao sincronizar dados:", err);
