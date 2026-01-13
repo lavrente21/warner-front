@@ -366,34 +366,37 @@ function showPage(id, el) {
 
 // --- SINCRONIZAÇÃO DE DADOS ---
 async function sincronizarDados() {
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    if (!storageData) return;
-
-    const user = JSON.parse(storageData);
-    const userId = user.id || user._id;
-
     try {
-        const res = await fetch(`${API_URL}/api/usuario/${userId}`);
-        if (res.ok) {
-            const data = await res.json();
-            localStorage.setItem('user', JSON.stringify(data));
+        const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+        if (!storageData) return;
 
-            // EXIBIR O LINK DE CONVITE COM O ID NOVO
-            // O link será algo como: meusite.netlify.app/registro.html?ref=user7721
-            const linkElement = document.getElementById('link-convite');
-            if (linkElement) {
-                linkElement.innerText = `https://warnermidia.netlify.app/registro.html?ref=${data.referral_id}`;
-            }
+        const user = JSON.parse(storageData);
+        const identificador = user.referral_id || user.id;
 
-            // ATUALIZAR CONTADORES DA EQUIPA
-            fetch(`${API_URL}/api/equipe/${data.referral_id}`)
-                .then(r => r.json())
-                .then(equipe => {
-                    document.getElementById('team-size-val').innerText = equipe.teamCount;
-                    document.getElementById('team-bonus-val').innerText = equipe.teamBonus + " Kz";
-                });
+        // 1. Busca dados básicos do usuário
+        const resUser = await fetch(`${API_URL}/api/usuario/${user.id}`);
+        if (resUser.ok) {
+            const novoDado = await resUser.json();
+            localStorage.setItem('user', JSON.stringify(novoDado));
+            
+            // Atualiza saldos na tela
+            document.querySelectorAll('.saldo-val').forEach(el => el.innerText = novoDado.saldo + " Kz");
         }
-    } catch (err) { console.error(err); }
+
+        // 2. Busca dados da equipe (com proteção de erro)
+        const resEquipe = await fetch(`${API_URL}/api/equipe/${identificador}`);
+        if (resEquipe.ok) {
+            const equipe = await resEquipe.json();
+            const countEl = document.getElementById('team-size-val');
+            const bonusEl = document.getElementById('team-bonus-val');
+            
+            if (countEl) countEl.innerText = equipe.teamCount;
+            if (bonusEl) bonusEl.innerText = equipe.teamBonus + " Kz";
+        }
+
+    } catch (err) {
+        console.warn("Sincronização falhou silenciosamente para não atrapalhar o usuário.");
+    }
 }
 
 // --- DEPÓSITO COM HOSPEDAGEM EXTERNA (IMGBB) ---
