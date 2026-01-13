@@ -391,62 +391,64 @@ async function sincronizarDados() {
 
 // --- DEPÓSITO COM HOSPEDAGEM EXTERNA (IMGBB) ---
 async function finalizarDeposito() {
-    const valor = document.getElementById('deposito-valor').value;
+    const valorInput = document.getElementById('deposito-valor');
     const imgInput = document.getElementById('comprovativo-img');
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     const user = JSON.parse(storageData);
 
-    if (!imgInput.files[0]) return toast("Selecione o comprovativo!");
-    if (!valor || valor < 5000) return toast("Mínimo 5.000 Kz");
+    // 1. Verificações de segurança
+    if (!imgInput.files || imgInput.files.length === 0) {
+        return toast("Selecione a foto do comprovativo!");
+    }
+    if (!valorInput.value || valorInput.value < 5000) {
+        return toast("Valor mínimo: 5.000 Kz");
+    }
 
     toast("Hospedando imagem...");
 
-    // 1. Criar o FormData para o ImgBB
+    // 2. Preparar o arquivo para o ImgBB
     const formData = new FormData();
     formData.append("image", imgInput.files[0]);
 
     try {
-        // 2. Upload para ImgBB com a sua nova chave
-        // O ImgBB permite chamadas vindas do Netlify (CORS liberado)
-        const resImg = await fetch("https://api.imgbb.com/1/upload?key=f1cbde38d1820926fd47faeb3e74975f", {
-            method: "POST"
+        // 3. O FETCH PRECISA DO BODY (Onde vai a foto)
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=f1cbde38d1820926fd47faeb3e74975f`, {
+            method: "POST",
+            body: formData // <-- ESSA LINHA É A QUE FALTAVA
         });
 
         const dataImg = await resImg.json();
 
         if (dataImg.success) {
             const linkDaFoto = dataImg.data.url;
-            console.log("Imagem hospedada com sucesso:", linkDaFoto);
-            
-            toast("Salvando dados...");
+            toast("Salvando no banco...");
 
-            // 3. Enviar o link para o seu servidor no Render
+            // 4. Enviar para o seu backend no Render
             const resFinal = await fetch(`${API_URL}/api/deposito`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     usuario_id: user.id || user._id,
-                    valor: valor,
+                    valor: valorInput.value,
                     comprovativo: linkDaFoto
                 })
             });
 
             if (resFinal.ok) {
-                toast("✅ Depósito enviado!");
+                toast("✅ Enviado para análise!");
                 showPage('pg-lar');
                 voltarPasso1();
-                document.getElementById('deposito-valor').value = '';
-                document.getElementById('comprovativo-img').value = '';
             } else {
-                toast("Erro ao salvar no banco.");
+                toast("Erro ao salvar dados no Render.");
             }
         } else {
-            console.error("Erro ImgBB:", dataImg);
-            toast("Falha no upload da foto.");
+            // Caso o ImgBB rejeite por algum motivo (ex: arquivo muito grande)
+            console.error("Erro detalhado ImgBB:", dataImg);
+            toast("Erro no servidor de imagem: " + (dataImg.error ? dataImg.error.message : "Tente novamente"));
         }
     } catch (err) {
         console.error("Erro de conexão:", err);
-        toast("Erro de rede. Verifique sua internet.");
+        toast("Erro de rede. Verifique a internet.");
     }
 }
 
