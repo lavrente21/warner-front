@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - PicaDji Angola</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { font-family: 'Roboto', sans-serif; }
+    </style>
+</head>
+<body>
+    <div id="pg-login" class="view page-finance">
+        <div class="finance-header" onclick="window.location.href='index.html'"><i class="fa-solid fa-chevron-left"></i> Login</div>
+        <div class="finance-body">
+            <div class="input-group">
+                <label>Email</label>
+                <input type="email" placeholder="Digite seu email" id="email-login">
+            </div>
+            <div class="input-group">
+                <label>Senha</label>
+                <input type="password" placeholder="Digite sua senha" id="senha-login">
+            </div>
+            <button class="btn-confirm" onclick="login()"><i class="fa-solid fa-sign-in-alt"></i> Entrar</button>
+            <p style="text-align: center; margin-top: 10px;">Não tem conta? <span style="color: #6a3ab2; cursor: pointer;" onclick="window.location.href='registro.html'">Registre-se</span></p>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

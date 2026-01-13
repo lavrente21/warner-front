@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warner Media</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+ 
+<div id="app">
+<!-- HEADER PADRÃO -->
+<header id="main-header" style="height: 60px; padding: 0 20px;">
+    <div class="brand" style="display: flex; align-items: center; height: 100%;">
+        <img src="logo.png" alt="Logo" style="height: 15px; width: auto; border-radius: 0; object-fit: contain;">
+        </div>
+    <div class="top-icons">
+        <i class="fa-solid fa-headset" onclick="showPage('pg-call-center')" style="margin-right: 10px;"></i>
+        <div class="lang-selector">
+            <select style="background: none; border: none; color: #fff; font-size: 11px;" onchange="changeLanguage(this.value)">
+                <option value="pt">Português</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+    </div>
+</header>
+<div id="pg-lar" class="view">
+    <div class="banner-placeholder" style="background: none;">
+        <img src="banner.gif" alt="Banner" style="width: 100%; height: 100%; border-radius: 15px; object-fit: cover;">
+    </div>
+<div class="grid-home">
+    <div class="grid-item" onclick="showPage('pg-recarga')">
+        <i class="fa-solid fa-building-columns"></i>
+        <span>Recarga</span>
+    </div>
+
+    <div class="grid-item" onclick="showPage('pg-retirar')">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <span>Retirar</span>
+    </div>
+
+    <div class="grid-item" onclick="showPage('pg-equipe')">
+        <i class="fa-solid fa-users"></i>
+        <span>Equipe</span>
+    </div>
+</div>
+<div class="task-card">
+    <div class="card-tag">VIP1</div>
+    <div class="card-main">
+        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
+        <div class="card-details">
+            <div><p class="c-label">Recompensa</p><p class="c-val">250 Kz</p></div>
+            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
+        </div>
+    </div>
+    <button class="btn-action" onclick="completeTask(250)">Ir para tarefa</button>
+</div>
+
+<div class="task-card">
+    <div class="card-tag">VIP2</div>
+    <div class="card-main">
+        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
+        <div class="card-details">
+            <div><p class="c-label">Recompensa</p><p class="c-val">500 Kz</p></div>
+            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
+        </div>
+    </div>
+    <button class="btn-action" onclick="completeTask(250)">Ir para tarefa</button>
+</div>
+
+<div class="task-card">
+    <div class="card-tag">VIP3</div>
+    <div class="card-main">
+        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
+        <div class="card-details">
+            <div><p class="c-label">Recompensa</p><p class="c-val">1000 Kz</p></div>
+            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
+        </div>
+    </div>
+    <button class="btn-action" onclick="completeTask(250)">Ir para tarefa</button>
+</div>
+</div>
+
+
+<!-- VIEW: TAREFA -->
+<div id="pg-tarefa" class="view hidden">
+    <div class="task-tabs">
+        <button class="task-tab-btn active" onclick="showTarefas('nao-concluidas')">Não concluído</button>
+        <button class="task-tab-btn active" onclick="showTarefas('concluidas')">Concluído</button>
+    </div>
+    <div id="tarefas-nao-concluidas">
+        <div class="task-card">
+            <div class="card-tag">VIP1</div>
+            <div class="card-main">
+                <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
+                <div class="card-details">
+                    <div><p class="c-label">Recompensa</p><p class="c-val">250 Kz</p></div>
+                    <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
+                </div>
+            </div>
+            <button class="btn-action" onclick="completeTask(250)">Ir para tarefa</button>
+        </div>
+    </div>
+    <div id="tarefas-concluidas" class="hidden">
+        <p>Nenhuma tarefa concluída.</p>
+    </div>
+</div>
+
+<div id="pg-call-center" class="view page-finance hidden">
+    <div class="finance-header" onclick="showPage('pg-lar')"><i class="fa-solid fa-chevron-left"></i> Suporte</div>
+    <div class="finance-body">
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <!-- Mensagens serão adicionadas aqui -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="mensagem-suporte" placeholder="Digite sua mensagem aqui...">
+                <button class="btn-send" onclick="enviarMensagemSuporte()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: EQUIPE -->
+
+    <div id="pg-equipe" class="view hidden">
+    <div class="finance-header" onclick="showPage('pg-lar')">
+        <i class="fa-solid fa-chevron-left"></i> Minha Equipa
+    </div>
+    <div class="finance-body">
+        <div class="admin-card" style="background: linear-gradient(135deg, #6a3ab2, #a83279); color: white; padding: 20px; border-radius: 15px; text-align: center;">
+            <i class="fa-solid fa-share-nodes" style="font-size: 30px; margin-bottom: 10px;"></i>
+            <h3>Convide Amigos</h3>
+            <p style="font-size: 12px; opacity: 0.9; margin-bottom: 15px;">Ganhe até 15% de comissão sobre os investimentos dos seus amigos.</p>
+            
+            <div style="background: rgba(255,255,255,0.2); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                <span id="link-convite" style="font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-right: 10px;">https://picadji.com/reg?ref=user7721</span>
+                <button onclick="copiarLink()" style="background: white; color: #6a3ab2; border: none; padding: 5px 10px; border-radius: 5px; font-weight: bold; cursor: pointer;">COPIAR</button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+            <div style="background: #fff; color: #333; padding: 15px; border-radius: 12px; text-align: center;">
+                <small>Total de Amigos</small>
+                <h4 id="team-size-val" style="font-size: 20px;">0</h4>
+            </div>
+            <div style="background: #fff; color: #333; padding: 15px; border-radius: 12px; text-align: center;">
+                <small>Bónus Ganho</small>
+                <h4 id="team-bonus-val" style="font-size: 20px; color: green;">0 Kz</h4>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <p style="font-size: 13px; margin-bottom: 10px; color: #333;">Regras de Recompensa:</p>
+            <div style="background: rgba(255,255,255,0.8); padding: 10px; border-radius: 10px; font-size: 12px; color: #333;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Nível 1 (Diretos)</span> <b>10%</b>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                    <span>Nível 2</span> <b>3%</b>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span>Nível 3</span> <b>2%</b>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- VIEW: VIP -->
+<div id="pg-vip" class="view hidden">
+<div class="vip-card">
+<div class="card-tag">VIP1</div>
+<div class="card-main">
+<div class="card-img" style="background:var(--primary-purple)"><i class="fa-solid fa-gem"></i></div>
+<div class="card-details">
+<div><p class="c-label">Preço</p><p class="c-val">5.000 Kz</p></div>
+<div><p class="c-label">Diário</p><p class="c-val">500 Kz</p></div>
+</div>
+</div>
+<button class="btn-action">Desbloquear</button>
+</div>
+</div>
+
+<!-- VIEW: MEU -->
+<div id="pg-meu" class="view hidden">
+    <div class="meu-balance-area">
+        <p style="font-size:12px; opacity:0.8;">Balanço Total</p>
+        <h2 id="user-balance" style="font-size:36px; margin:10px 0;">0</h2>
+        <p style="font-size:12px;">Kwanza (Kz)</p>
+    </div>
+
+    <div class="meu-user-stripe">
+        <span>lavrentemambondo@gmail.com</span>
+        <span style="background:var(--accent-green); color:#000; padding:2px 10px; border-radius:15px; font-weight:bold;">VIP 0</span>
+    </div>
+
+    <div class="meu-menu-white">
+        <div class="meu-menu-row" onclick="showPage('pg-recarga')"><span>Recarregar</span> <i class="fa-solid fa-chevron-right"></i></div>
+        <div class="meu-menu-row" onclick="showPage('pg-retirar')"><span>Retirar</span> <i class="fa-solid fa-chevron-right"></i></div>
+        
+        <div class="meu-menu-row" onclick="showPage('pg-historico')">
+            <span style="font-weight:bold;"><i class="fa-solid fa-clock-rotate-left"></i> Histórico de Transações</span> 
+            <i class="fa-solid fa-chevron-right"></i>
+        </div>
+
+        <div class="meu-menu-row" onclick="showPage('pg-equipe')"><span>Minha Equipe</span> <i class="fa-solid fa-chevron-right"></i></div>
+        <div class="meu-menu-row" onclick="showPage('pg-senha')"><span>Alterar Senha</span> <i class="fa-solid fa-chevron-right"></i></div>
+        <div class="meu-menu-row" style="border:none;" onclick="window.location.href='login.html'"><span style="color:red;">Sair</span> <i class="fa-solid fa-chevron-right"></i></div>
+    </div>
+</div>
+
+
+
+<!-- PÁGINAS DE AÇÃO -->
+
+<div id="pg-retirar" class="view page-finance hidden">
+    <div class="finance-header" onclick="showPage('pg-lar')">
+        <i class="fa-solid fa-chevron-left"></i> Levantamento
+    </div>
+    <div class="finance-body">
+        <div class="input-group">
+            <label>Valor (Kz)</label>
+            <input type="number" placeholder="Mínimo 5.000" id="valor-retirada">
+        </div>
+        <div class="input-group">
+            <label>IBAN</label>
+            <input type="text" placeholder="AO06..." id="iban-retirada">
+        </div>
+        <div class="input-group">
+            <label>Nome do Titular</label>
+            <input type="text" placeholder="Nome completo" id="nome-retirada">
+        </div>
+        <div class="input-group">
+            <label>Senha</label>
+            <input type="password" placeholder="Senha" id="senha-retirada">
+        </div>
+        <button class="btn-confirm" onclick="confirmarRetirada()">
+            <i class="fa-solid fa-money-bill-transfer"></i> Confirmar Levantamento
+        </button>
+    </div>
+</div>
+    
+    <div id="pg-historico" class="view page-finance hidden">
+    <div class="finance-header" onclick="showPage('pg-meu')">
+        <i class="fa-solid fa-chevron-left"></i> Voltar ao Meu Perfil
+    </div>
+    <div class="finance-body">
+        <h3 style="margin-bottom: 15px; font-size: 14px; opacity: 0.7;">Registo de Atividades</h3>
+        
+        <div class="transaction-card" style="background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid #f1c40f; color: #333;">
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 12px;">Depósito via IBAN</span>
+                <b style="color: #f1c40f; font-size: 10px;">PENDENTE</b>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                <b style="font-size: 16px;">+ 10.000 Kz</b>
+                <span style="font-size: 11px; opacity: 0.5;">11/01/2026</span>
+            </div>
+        </div>
+
+        <div class="transaction-card" style="background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid #2ecc71; color: #333;">
+            <div style="display: flex; justify-content: space-between;">
+                <span style="font-size: 12px;">Tarefa Diária</span>
+                <b style="color: #2ecc71; font-size: 10px;">CONCLUÍDO</b>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 5px;">
+                <b style="font-size: 16px;">+ 250 Kz</b>
+                <span style="font-size: 11px; opacity: 0.5;">10/01/2026</span>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<div id="pg-recarga" class="view page-finance hidden">
+    <div class="finance-header" onclick="showPage('pg-lar')">
+        <i class="fa-solid fa-chevron-left"></i> Recarga de Saldo
+    </div>
+    
+    <div class="finance-body">
+        <div id="deposito-step-1">
+            <div class="input-group">
+                <label>Valor a depositar (Kz)</label>
+                <input type="number" id="deposito-valor" placeholder="Mínimo 5.000 Kz">
+            </div>
+
+            <div class="input-group">
+                <label>Selecione o seu Banco</label>
+                <select id="deposito-banco" style="width: 100%; padding: 12px; border-radius: 8px; background: #fff; color: #333;">
+                    <option value="BAI">BAI (Transferência/Depósito)</option>
+                    <option value="BFA">BFA</option>
+                    <option value="Unitel Money">Unitel Money</option>
+                </select>
+            </div>
+
+            <button class="btn-confirm" onclick="avancarPagamento()">Próximo <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+
+        <div id="deposito-step-2" class="hidden">
+            <div class="admin-card" style="background: #fff; color: #333; padding: 15px; border-radius: 12px;">
+                <p style="font-size: 12px; font-weight: bold; color: var(--primary-purple);">Dados para Pagamento:</p>
+                
+                <div style="background: #f4f4f4; padding: 10px; border-radius: 8px; margin: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                    <span id="iban-txt" style="font-size: 13px; font-weight: bold;">AO06 0040 0000 1234 5678 9012</span>
+                    <i class="fa-solid fa-copy" onclick="copiarIBAN()" style="color: var(--primary-purple); cursor: pointer; padding: 5px;"></i>
+                </div>
+
+                <p style="font-size: 11px;">Beneficiário: <b>PicaDji Angola</b></p>
+                <p style="font-size: 11px;">Valor a enviar: <b id="valor-confirmado" style="color: green;"></b></p>
+            </div>
+
+            <div class="input-group" style="margin-top: 20px;">
+                <label>Anexe a Foto do Comprovativo</label>
+                <input type="file" id="comprovativo-img" accept="image/*" style="background: #fff; color: #333; width: 100%; border-radius: 8px; padding: 8px;">
+            </div>
+
+            <button class="btn-confirm" onclick="finalizarDeposito()">Confirmar Envio</button>
+            <button class="btn-action" style="background: none; border: 1px solid #555; color: #fff;" onclick="voltarPasso1()">Voltar</button>
+        </div>
+    </div>
+</div>
+<!-- ... (restante do código) ... -->
+
+    <div id="pg-historico" class="view page-finance hidden">
+    <div class="finance-header" onclick="showPage('pg-perfil')">
+        <i class="fa-solid fa-chevron-left"></i> Histórico
+    </div>
+    <div class="finance-body">
+        <div class="transaction-item" style="background: #1a1b2e; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #f1c40f;">
+            <div style="display: flex; justify-content: space-between;">
+                <b>Depósito</b>
+                <span style="color: #f1c40f; font-size: 11px;">PENDENTE</span>
+            </div>
+            <p style="font-size: 14px; margin: 5px 0;">10.000 Kz</p>
+            <small style="opacity: 0.5;">11/01/2026 - 14:30</small>
+        </div>
+    </div>
+</div>
+    
+<div id="pg-deposito-coordenadas" class="view page-finance hidden">
+    <div class="finance-header" onclick="showPage('pg-lar')"><i class="fa-solid fa-chevron-left"></i> Depósito</div>
+    <div class="finance-body">
+        <div class="input-group">
+            <label>Valor a depositar</label>
+            <input type="text" id="valor-deposito-coordenadas" disabled>
+        </div>
+        <div class="input-group">
+            <label>Coordenadas de depósito</label>
+            <div class="code-display">
+                <span>Banco: Banco Atlântico</span>
+            </div>
+            <div class="code-display">
+                <span>IBAN: AO06 0040 0000 1234 5678 9012</span>
+            </div>
+            <div class="code-display">
+                <span>Titular: ZEROmallS</span>
+            </div>
+        </div>
+        <button class="btn-confirm" onclick="confirmarDeposito()">Confirmar Depósito</button>
+    </div>
+</div>
+
+<!-- ... (restante do código) ... -->
+
+<div id="pg-senha" class="view page-finance hidden">
+<div class="finance-header" onclick="showPage('pg-meu')"><i class="fa-solid fa-chevron-left"></i> Alterar Senha</div>
+<div class="finance-body">
+<div class="input-group"><label>Senha Atual</label><input type="password"></div>
+<div class="input-group"><label>Nova Senha</label><input type="password"></div>
+<button class="btn-confirm" onclick="toast('Senha alterada!')">Atualizar</button>
+</div>
+</div>
+
+<!-- NAV -->
+<nav class="bottom-nav">
+<div class="nav-tab active" onclick="showPage('pg-lar', this)"><i class="fa-solid fa-house"></i><span>Lar</span></div>
+<div class="nav-tab" onclick="showPage('pg-tarefa', this)"><i class="fa-solid fa-list-check"></i><span>Tarefa</span></div>
+<div class="nav-tab" onclick="showPage('pg-equipe', this)"><i class="fa-solid fa-users"></i><span>Equipe</span></div>
+<div class="nav-tab" onclick="showPage('pg-vip', this)"><i class="fa-solid fa-crown"></i><span>VIP</span></div>
+<div class="nav-tab" onclick="showPage('pg-meu', this)"><i class="fa-solid fa-user"></i><span>Meu</span></div>
+</nav>
+</div>
+
+<script >
+function copiarLink() {
+    const link = document.getElementById('link-convite').innerText;
+    navigator.clipboard.writeText(link);
+    toast("Link de convite copiado!");
+}
+
+// Exemplo de como abrir o histórico a partir do perfil
+function verHistorico() {
+    showPage('pg-historico');
+}
+
+    // Funções de Depósito
+function avancarPagamento() {
+    const valor = document.getElementById('deposito-valor').value;
+    if (valor < 5000) {
+        toast("Valor mínimo é 5.000 Kz");
+        return;
+    }
+    document.getElementById('valor-confirmado').innerText = valor + " Kz";
+    document.getElementById('deposito-step-1').classList.add('hidden');
+    document.getElementById('deposito-step-2').classList.remove('hidden');
+}
+
+function voltarPasso1() {
+    document.getElementById('deposito-step-2').classList.add('hidden');
+    document.getElementById('deposito-step-1').classList.remove('hidden');
+}
+
+function copiarIBAN() {
+    const iban = document.getElementById('iban-txt').innerText;
+    navigator.clipboard.writeText(iban);
+    toast("IBAN copiado com sucesso!");
+}
+
+function finalizarDeposito() {
+    const file = document.getElementById('comprovativo-img').value;
+    if (!file) {
+        toast("Por favor, anexe o comprovativo!");
+        return;
+    }
+    toast("Enviando para o administrador...");
+    setTimeout(() => {
+        toast("Enviado com sucesso! Verifique o Histórico.");
+        showPage('pg-lar');
+        voltarPasso1();
+    }, 2000);
+}
+
+// Para ver o histórico no menu principal, adicione um ícone ou use este comando:
+// showPage('pg-historico');
+
+let balance = 0;
+let teamBonus = 0;
+let teamCount = 0;
+
+function showPage(id, el) {
+document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+document.getElementById(id).classList.remove('hidden');
+
+const header = document.getElementById('main-header');
+const mains = ['pg-lar', 'pg-tarefa', 'pg-meu', 'pg-vip', 'pg-equipe'];
+header.style.display = mains.includes(id) ? 'flex' : 'none';
+
+if(el) {
+document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+el.classList.add('active');
+}
+window.scrollTo(0,0);
+}
+
+function completeTask(val) {
+balance += val;
+updateUI();
+toast('Tarefa Concluída! +' + val + ' Kz');
+}
+
+function inviteFriend() {
+teamCount++;
+const bonus = 500;
+teamBonus += bonus;
+balance += bonus;
+updateUI();
+toast('Novo convite! +500 Kz');
+}
+
+function updateUI() {
+document.getElementById('user-balance').innerText = balance;
+document.getElementById('team-bonus-val').innerText = teamBonus + " Kz";
+document.getElementById('team-size-val').innerText = teamCount;
+document.getElementById('lvl1-val').innerText = teamBonus + " Kz";
+}
+
+function toast(msg) {
+const t = document.createElement('div');
+t.style = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:10px 20px; border-radius:20px; font-size:12px; z-index:9999;";
+t.innerText = msg;
+document.body.appendChild(t);
+setTimeout(() => t.remove(), 2000);
+}
+
+function confirmarDeposito() {
+    const valor = document.getElementById('valor-deposito').value;
+    if (valor) {
+        document.getElementById('valor-deposito-coordenadas').innerText = valor;
+        showPage('pg-deposito-coordenadas');
+    } else {
+        toast('Por favor, preencha o valor!');
+    }
+}
+
+    function showTarefas(tipo) {
+        if (tipo === 'nao-concluidas') {
+            document.getElementById('tarefas-nao-concluidas').classList.remove('hidden');
+            document.getElementById('tarefas-concluidas').classList.add('hidden');
+        } else {
+            document.getElementById('tarefas-nao-concluidas').classList.add('hidden');
+            document.getElementById('tarefas-concluidas').classList.remove('hidden');
+        }
+    }
+
+    function confirmarRetirada() {
+    const valor = document.getElementById('valor-retirada').value;
+    const iban = document.getElementById('iban-retirada').value;
+    const nome = document.getElementById('nome-retirada').value;
+    const senha = document.getElementById('senha-retirada').value;
+    if (valor && iban && nome && senha) {
+        // Aqui você pode adicionar a lógica para verificar a senha e realizar a retirada
+        toast('Levantamento confirmado!');
+        showPage('pg-lar');
+    } else {
+        toast('Por favor, preencha todos os campos!');
+    }
+}
+
+    function changeLanguage(lang) {
+    // Implemente a lógica de mudança de idioma aqui
+    toast('Idioma alterado para ' + lang);
+}
+
+function enviarMensagemSuporte() {
+    const mensagem = document.getElementById('mensagem-suporte').value;
+    if (mensagem) {
+        const chatMessages = document.getElementById('chat-messages');
+        const mensagemElement = document.createElement('div');
+        mensagemElement.className = 'mensagem enviada';
+        mensagemElement.innerHTML = `<div class="conteudo">${mensagem}</div>`;
+        chatMessages.appendChild(mensagemElement);
+        document.getElementById('mensagem-suporte').value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Aqui você pode adicionar a lógica para enviar a mensagem para o suporte
+    }
+}
+
+// Exemplo de mensagem recebida
+function receberMensagemSuporte(mensagem) {
+    const chatMessages = document.getElementById('chat-messages');
+    const mensagemElement = document.createElement('div');
+    mensagemElement.className = 'mensagem recebida';
+    mensagemElement.innerHTML = `<div class="conteudo">${mensagem}</div>`;
+    chatMessages.appendChild(mensagemElement);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+async function login() {
+    const email = document.getElementById('email-login').value;
+    const senha = document.getElementById('senha-login').value;
+
+    const res = await fetch('https://SUA-URL-DO-RENDER.onrender.com/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+    });
+
+    if(res.ok) {
+        const user = await res.json();
+        localStorage.setItem('user', JSON.stringify(user));
+        window.location.href = 'index.html';
+    } else {
+        alert("Login falhou!");
+    }
+}
+
+async function registro() {
+    const nome = document.getElementById('nome-registro').value;
+    const email = document.getElementById('email-registro').value;
+    const senha = document.getElementById('senha-registro').value;
+
+    const res = await fetch('https://SUA-URL-DO-RENDER.onrender.com/api/registrar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome, email, senha })
+    });
+
+    if(res.ok) {
+        alert("Conta criada!");
+        window.location.href = 'login.html';
+    } else {
+        alert("Erro ao criar conta.");
+    }
+} 
+    function irParaPagamento() {
+    const valor = document.getElementById('deposito-valor').value;
+    
+    if (valor < 5000) {
+        toast("O valor mínimo de depósito é 5.000 Kz");
+        return;
+    }
+
+    // Passa o valor para o próximo passo
+    document.getElementById('display-valor').innerText = valor + " Kz";
+
+    // Troca de ecrã (Front-end)
+    document.getElementById('recarga-passo-1').classList.add('hidden');
+    document.getElementById('recarga-passo-2').classList.remove('hidden');
+}
+
+function voltarPasso1() {
+    document.getElementById('recarga-passo-2').classList.add('hidden');
+    document.getElementById('recarga-passo-1').classList.remove('hidden');
+}
+
+function finalizarDeposito() {
+    const img = document.getElementById('comprovativo-img').value;
+
+    if (!img) {
+        toast("Por favor, anexe a foto do comprovativo para validar.");
+        return;
+    }
+
+    toast("Enviando para análise...");
+    
+    setTimeout(() => {
+        toast("Sucesso! O Admin verificará o seu depósito em breve.");
+        showPage('pg-lar');
+        // Reseta o formulário
+        voltarPasso1();
+        document.getElementById('deposito-valor').value = '';
+        document.getElementById('comprovativo-img').value = '';
+    }, 2500);
+}
+</script>
+</body>
+</html>

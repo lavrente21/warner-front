@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - PicaDji Angola</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Ajustes para o Layout do Administrador */
+        .admin-section { display: none; padding: 15px; }
+        .admin-section.active { display: block; }
+        
+        .admin-card { 
+            background: white; color: #333; padding: 15px; 
+            border-radius: 12px; margin-bottom: 15px; 
+            border-left: 5px solid var(--primary-purple);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* Estilo da Tabela para Muitos Dados */
+        .admin-table { width: 100%; border-collapse: collapse; background: white; color: #333; border-radius: 10px; overflow: hidden; }
+        .admin-table th { background: #f4f4f4; padding: 12px; text-align: left; font-size: 13px; border-bottom: 2px solid #eee; }
+        .admin-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 12px; }
+
+        /* Suporte Multi-usuário */
+        .support-grid { display: grid; grid-template-columns: 280px 1fr; gap: 10px; height: 75vh; background: #fff; border-radius: 12px; overflow: hidden; }
+        .user-list { background: #1a1b2e; color: white; overflow-y: auto; border-right: 1px solid #ddd; }
+        .user-item { padding: 15px; border-bottom: 1px solid #2a2b4d; cursor: pointer; }
+        .user-item:hover { background: #32345e; }
+        .user-item.active { background: var(--primary-purple); }
+
+        .modal-view { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:2000; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+<div id="app" style="max-width: 900px;">
+    <header id="main-header" style="background: #1a1b2e;">
+        <div class="brand">
+            <h1 style="font-size: 18px;"><i class="fa-solid fa-user-shield"></i> PicaDji ADMIN</h1>
+        </div>
+        <div style="font-size: 11px; background: #2ecc71; padding: 2px 8px; border-radius: 10px;">SERVIDOR ONLINE</div>
+    </header>
+
+    <nav class="task-tabs" style="background: #1a1b2e; position: sticky; top: 0; z-index: 100;">
+        <button class="task-tab-btn active" onclick="tab(this, 'sec-depositos')">Depósitos</button>
+        <button class="task-tab-btn" onclick="tab(this, 'sec-levantamentos')">Levantamentos</button>
+        <button class="task-tab-btn" onclick="tab(this, 'sec-suporte')">Suporte</button>
+        <button class="task-tab-btn" onclick="tab(this, 'sec-vips')">Pacotes</button>
+    </nav>
+
+    <div id="sec-depositos" class="admin-section active">
+        <h3 style="margin-bottom: 15px;">Aprovação de Depósitos</h3>
+        <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <b>lavrentemambondo@gmail.com</b>
+                    <p style="color: #27ae60; font-weight: bold; font-size: 16px; margin: 5px 0;">+ 10.000 Kz</p>
+                    <small>Método: IBAN Atlântico | Data: 11/01/2026</small>
+                </div>
+                <span style="background: #f1c40f; padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold;">AGUARDANDO</span>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button class="btn-action" style="margin:0; padding: 8px; font-size: 11px; background: #555;" onclick="verComprovativo()">
+                    <i class="fa-solid fa-file-invoice"></i> Ver Comprovativo
+                </button>
+                <button class="btn-confirm" style="margin:0; padding: 8px; font-size: 11px; background: #27ae60;" onclick="aprovarTransacao(this, 'Depósito')">
+                    Autorizar Saldo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="sec-levantamentos" class="admin-section">
+        <h3 style="margin-bottom: 15px;">Pedidos de Saque</h3>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Usuário</th>
+                    <th>Valor</th>
+                    <th>Dados Bancários</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>António Costa</b><br><small>id: 7721</small></td>
+                    <td style="color: #e74c3c; font-weight: bold;">5.500 Kz</td>
+                    <td><small>AO06 0040...9012<br>Banco BAI</small></td>
+                    <td>
+                        <button class="btn-confirm" style="padding: 5px; font-size: 10px; margin-bottom: 5px;" onclick="aprovarTransacao(this, 'Levantamento')">Pagar</button>
+                        <button class="btn-action" style="padding: 5px; font-size: 10px; background: #666;" onclick="rejeitar(this)">Recusar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div id="sec-suporte" class="admin-section">
+        <div class="support-grid">
+            <div class="user-list">
+                <div style="padding: 10px; font-size: 11px; opacity: 0.6; text-transform: uppercase;">Mensagens Recentes</div>
+                <div class="user-item active" onclick="abrirChat('João Silva', 'VIP 2')">
+                    <b>João Silva</b> <small style="color: #d4ff00;">(VIP 2)</small>
+                    <p style="font-size: 10px; opacity: 0.7;">Olá, como ativo...</p>
+                </div>
+                <div class="user-item" onclick="abrirChat('Maria Antónia', 'VIP 0')">
+                    <b>Maria Antónia</b>
+                    <p style="font-size: 10px; opacity: 0.7;">Depósito confirmado!</p>
+                </div>
+            </div>
+            <div style="display: flex; flex-direction: column; color: #333;">
+                <div style="padding: 15px; border-bottom: 1px solid #eee; background: #fff; font-weight: bold;" id="chat-header">João Silva</div>
+                <div id="admin-chat-messages" style="flex-grow: 1; padding: 15px; overflow-y: auto; background: #f4f7f6;">
+                    <div class="mensagem recebida"><div class="conteudo">Olá Admin, fiz o depósito de 10.000 Kz agora. Pode verificar?</div></div>
+                </div>
+                <div class="chat-input" style="background: #fff;">
+                    <input type="text" id="admin-reply" placeholder="Escreva para o usuário...">
+                    <button class="btn-send" onclick="enviarMensagemAdmin()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sec-vips" class="admin-section">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <h3>Configurar Investimentos</h3>
+            <button class="btn-confirm" style="width: auto; padding: 5px 15px;" onclick="alert('Criar novo pacote...')">+ Novo VIP</button>
+        </div>
+        <div class="admin-card">
+            <b>VIP 1 - Bronze</b>
+            <p>Preço: 5.000 Kz | Retorno Diário: 500 Kz</p>
+            <button class="btn-action" style="margin-top: 10px; width: auto; padding: 5px 15px; background: var(--primary-purple);">Editar Valores</button>
+        </div>
+    </div>
+</div>
+
+<div id="modal-comprovativo" class="modal-view" onclick="this.style.display='none'">
+    <p style="color: white; margin-bottom: 15px;">Comprovativo Enviado pelo Usuário</p>
+    <img src="https://via.placeholder.com/300x500?text=Comprovante+Bancario+Angola" style="max-width: 80%; border-radius: 10px; border: 3px solid white;">
+    <button class="btn-action" style="width: 200px; margin-top: 20px;">Fechar Visualização</button>
+</div>
+
+<script>
+    function tab(btn, id) {
+        document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.task-tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function verComprovativo() {
+        document.getElementById('modal-comprovativo').style.display = 'flex';
+    }
+
+    function aprovarTransacao(btn, tipo) {
+        if(confirm(`Deseja realmente autorizar este ${tipo}?`)) {
+            const container = btn.parentElement;
+            container.innerHTML = `<p style="color: #27ae60; font-weight: bold; font-size: 13px;">✅ ${tipo} Aprovado com Sucesso!</p>`;
+        }
+    }
+
+    function rejeitar(btn) {
+        let motivo = prompt("Motivo da rejeição:");
+        if(motivo) {
+            btn.closest('tr').remove();
+            alert("Solicitação recusada e usuário notificado.");
+        }
+    }
+
+    function abrirChat(nome, vip) {
+        document.getElementById('chat-header').innerText = `${nome} (${vip})`;
+        document.getElementById('admin-chat-messages').innerHTML = `<div class="mensagem recebida"><div class="conteudo">Olá suporte, sou ${nome}. Preciso de ajuda com meu saldo.</div></div>`;
+    }
+
+    function enviarMensagemAdmin() {
+        const input = document.getElementById('admin-reply');
+        if(input.value) {
+            const box = document.getElementById('admin-chat-messages');
+            box.innerHTML += `<div class="mensagem enviada"><div class="conteudo">${input.value}</div></div>`;
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
+        }
+    }
+</script>
+
+</body>
+</html>
