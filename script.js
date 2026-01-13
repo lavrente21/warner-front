@@ -97,3 +97,26 @@ async function finalizarDeposito() {
 
 // Executar ao carregar a página
 window.onload = carregarDadosUsuario;
+
+async function atualizarSaldoReal() {
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    if (!user) return;
+
+    try {
+        const res = await fetch(`${API_URL}/api/usuario/${user.id}`);
+        const data = await res.json();
+        if (res.ok) {
+            // Atualiza o saldo na tela e no localStorage
+            user.saldo = data.saldo;
+            localStorage.setItem('usuario', JSON.stringify(user));
+            const saldoElement = document.querySelector('.balance-amount');
+            if (saldoElement) saldoElement.innerText = `${data.saldo} Kz`;
+        }
+    } catch (err) { console.error("Erro ao atualizar saldo"); }
+}
+
+// Chame essa função dentro do window.onload
+window.onload = () => {
+    carregarDadosUsuario();
+    atualizarSaldoReal();
+};
