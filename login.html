@@ -10,23 +10,31 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        body { font-family: 'Roboto', sans-serif; }
+        body { font-family: 'Roboto', sans-serif; background-color: #f4f4f4; }
     </style>
 </head>
 <body>
     <div id="pg-login" class="view page-finance">
-        <div class="finance-header" onclick="window.location.href='index.html'"><i class="fa-solid fa-chevron-left"></i> Login</div>
-        <div class="finance-body">
-            <div class="input-group">
-                <label>Email</label>
-                <input type="email" placeholder="Digite seu email" id="email-login">
+        <div class="finance-header" onclick="window.location.href='index.html'" style="cursor:pointer; padding: 20px; background: #6a3ab2; color: white;">
+            <i class="fa-solid fa-chevron-left"></i> Login
+        </div>
+        <div class="finance-body" style="padding: 20px;">
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Email</label>
+                <input type="email" placeholder="Digite seu email" id="email-login" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;">
             </div>
-            <div class="input-group">
-                <label>Senha</label>
-                <input type="password" placeholder="Digite sua senha" id="senha-login">
+            <div class="input-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px;">Senha</label>
+                <input type="password" placeholder="Digite sua senha" id="senha-login" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc;">
             </div>
-            <button class="btn-confirm" onclick="login()"><i class="fa-solid fa-sign-in-alt"></i> Entrar</button>
-            <p style="text-align: center; margin-top: 10px;">Não tem conta? <span style="color: #6a3ab2; cursor: pointer;" onclick="window.location.href='registro.html'">Registre-se</span></p>
+            
+            <button class="btn-confirm" onclick="login()" style="width: 100%; padding: 15px; background: #6a3ab2; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                <i class="fa-solid fa-sign-in-alt"></i> Entrar
+            </button>
+            
+            <p style="text-align: center; margin-top: 20px;">
+                Não tem conta? <span style="color: #6a3ab2; cursor: pointer; font-weight: bold;" onclick="window.location.href='registro.html'">Registre-se</span>
+            </p>
         </div>
     </div>
 
@@ -34,10 +42,10 @@
         const API_URL = "https://warnermida-1.onrender.com";
 
         async function login() {
-            const email = document.getElementById('email-login').value;
-            const senha = document.getElementById('senha-login').value;
+            const emailInput = document.getElementById('email-login').value;
+            const senhaInput = document.getElementById('senha-login').value;
 
-            if (!email || !senha) {
+            if (!emailInput || !senhaInput) {
                 alert("Por favor, preencha todos os campos.");
                 return;
             }
@@ -46,21 +54,22 @@
                 const res = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, senha })
+                    body: JSON.stringify({ email: emailInput, senha: senhaInput })
                 });
 
                 const data = await res.json();
 
                 if (res.ok) {
-                    // Importante: salva os dados para o index.html reconhecer o usuário
+                    // Guarda os dados do utilizador para usar no index.html
                     localStorage.setItem('user', JSON.stringify(data));
+                    // Redireciona para a página principal
                     window.location.href = 'index.html';
                 } else {
                     alert(data.error || "Email ou senha incorretos.");
                 }
             } catch (err) {
                 console.error("Erro de conexão:", err);
-                alert("Erro ao conectar ao servidor. Verifique se o Render está ativo.");
+                alert("Erro ao ligar ao servidor. Verifique se o Render está ativo.");
             }
         }
     </script>
