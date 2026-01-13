@@ -393,50 +393,60 @@ async function sincronizarDados() {
 async function finalizarDeposito() {
     const valor = document.getElementById('deposito-valor').value;
     const imgInput = document.getElementById('comprovativo-img');
-    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const user = JSON.parse(storageData);
 
-    if (!imgInput.files[0]) return toast("Anexe o comprovativo!");
-    if (valor < 5000) return toast("Mínimo 5.000 Kz");
+    if (!imgInput.files[0]) return toast("Por favor, selecione o comprovativo!");
+    if (!valor || valor < 5000) return toast("Mínimo 5.000 Kz");
 
-    toast("Hospedando imagem...");
+    toast("Enviando imagem para servidor externo...");
 
+    // O FreeImage.host exige FormData para upload de arquivos
     const formData = new FormData();
-    formData.append("image", imgInput.files[0]);
+    formData.append("key", "6d207e02198a847aa98d0a2a901485a5"); // Sua chave aqui
+    formData.append("action", "upload");
+    formData.append("source", imgInput.files[0]); // O arquivo local entra aqui
+    formData.append("format", "json");
 
     try {
-        // Envio para o ImgBB
-        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+        // 1. Upload para o FreeImage.host (via POST)
+        const resImg = await fetch("https://freeimage.host/api/1/upload", {
             method: "POST",
             body: formData
         });
+
         const dataImg = await resImg.json();
 
-        if (dataImg.success) {
-            const linkFinal = dataImg.data.url;
-            toast("Salvando no sistema...");
+        // No FreeImage, o sucesso é status_code 200
+        if (dataImg.status_code === 200) {
+            const linkFinal = dataImg.image.url;
+            toast("Imagem hospedada! Salvando...");
 
-            // Envio para o seu Backend no Render
+            // 2. Enviar o link final para o seu servidor no Render
             const resFinal = await fetch(`${API_URL}/api/deposito`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     usuario_id: user.id || user._id,
                     valor: valor,
-                    comprovativo: linkFinal
+                    comprovativo: linkFinal // Apenas a URL do FreeImage
                 })
             });
 
             if (resFinal.ok) {
-                toast("Sucesso! Depósito em análise.");
+                toast("✅ Sucesso! Depósito em análise.");
                 showPage('pg-lar');
                 voltarPasso1();
+            } else {
+                toast("Erro ao salvar no banco de dados.");
             }
         } else {
-            toast("Erro no servidor de imagem.");
+            console.error("Erro FreeImage:", dataImg);
+            toast("Erro no servidor de fotos: " + dataImg.status_txt);
         }
     } catch (err) {
-        toast("Erro de conexão");
-        console.error(err);
+        console.error("Erro geral:", err);
+        toast("Erro de conexão.");
     }
 }
 
