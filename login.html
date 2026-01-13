@@ -39,39 +39,36 @@
     </div>
 
     <script>
-        const API_URL = "https://warnermida-1.onrender.com";
+    const API_URL = "https://warnermida-1.onrender.com";
 
-        async function login() {
-            const emailInput = document.getElementById('email-login').value;
-            const senhaInput = document.getElementById('senha-login').value;
+    async function login() {
+        const email = document.getElementById('email-login').value;
+        const senha = document.getElementById('senha-login').value;
 
-            if (!emailInput || !senhaInput) {
-                alert("Por favor, preencha todos os campos.");
-                return;
-            }
-
-            try {
-                const res = await fetch(`${API_URL}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: emailInput, senha: senhaInput })
-                });
-
-                const data = await res.json();
-
-                if (res.ok) {
-                    // Guarda os dados do utilizador para usar no index.html
-                    localStorage.setItem('user', JSON.stringify(data));
-                    // Redireciona para a página principal
-                    window.location.href = 'index.html';
-                } else {
-                    alert(data.error || "Email ou senha incorretos.");
-                }
-            } catch (err) {
-                console.error("Erro de conexão:", err);
-                alert("Erro ao ligar ao servidor. Verifique se o Render está ativo.");
-            }
+        if (!email || !senha) {
+            alert("Preencha todos os campos!");
+            return;
         }
-    </script>
+
+        try {
+            const res = await fetch(`${API_URL}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, senha })
+            });
+
+            const data = await res.json();
+
+            if (res.ok) {
+                localStorage.setItem('user', JSON.stringify(data));
+                window.location.href = 'index.html';
+            } else {
+                alert(data.error || "Dados incorretos");
+            }
+        } catch (err) {
+            alert("Erro de conexão com o servidor.");
+        }
+    }
+</script>
 </body>
 </html>
