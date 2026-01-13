@@ -367,26 +367,33 @@ function showPage(id, el) {
 // --- SINCRONIZAÇÃO DE DADOS ---
 async function sincronizarDados() {
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    if (!storageData) {
-        window.location.href = 'login.html';
-        return;
-    }
+    if (!storageData) return;
 
-    const userLocal = JSON.parse(storageData);
-    const userId = userLocal.id || userLocal._id;
+    const user = JSON.parse(storageData);
+    const userId = user.id || user._id;
 
     try {
         const res = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (res.ok) {
-            const userAtualizado = await res.json();
-            localStorage.setItem('user', JSON.stringify(userAtualizado));
+            const data = await res.json();
+            localStorage.setItem('user', JSON.stringify(data));
 
-            document.getElementById('user-name').innerText = userAtualizado.nome || userAtualizado.email;
-            document.getElementById('user-balance').innerText = userAtualizado.saldo;
-            document.getElementById('team-size-val').innerText = userAtualizado.teamCount || 0;
-            document.getElementById('team-bonus-val').innerText = (userAtualizado.teamBonus || 0) + " Kz";
+            // EXIBIR O LINK DE CONVITE COM O ID NOVO
+            // O link será algo como: meusite.netlify.app/registro.html?ref=user7721
+            const linkElement = document.getElementById('link-convite');
+            if (linkElement) {
+                linkElement.innerText = `https://warnermidia.netlify.app/registro.html?ref=${data.referral_id}`;
+            }
+
+            // ATUALIZAR CONTADORES DA EQUIPA
+            fetch(`${API_URL}/api/equipe/${data.referral_id}`)
+                .then(r => r.json())
+                .then(equipe => {
+                    document.getElementById('team-size-val').innerText = equipe.teamCount;
+                    document.getElementById('team-bonus-val').innerText = equipe.teamBonus + " Kz";
+                });
         }
-    } catch (err) { console.error("Erro sincronia:", err); }
+    } catch (err) { console.error(err); }
 }
 
 // --- DEPÓSITO COM HOSPEDAGEM EXTERNA (IMGBB) ---
