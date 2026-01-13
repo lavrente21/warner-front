@@ -52,7 +52,7 @@
                 const data = await res.json();
 
                 if (res.ok) {
-                    // Salva os dados para o index.html usar
+                    // Importante: salva os dados para o index.html reconhecer o usuário
                     localStorage.setItem('user', JSON.stringify(data));
                     window.location.href = 'index.html';
                 } else {
@@ -60,7 +60,7 @@
                 }
             } catch (err) {
                 console.error("Erro de conexão:", err);
-                alert("Servidor em manutenção ou erro de conexão.");
+                alert("Erro ao conectar ao servidor. Verifique se o Render está ativo.");
             }
         }
     </script>
