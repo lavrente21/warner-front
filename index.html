@@ -345,7 +345,7 @@
 
 <script>
 const API_URL = "https://warnermida-1.onrender.com";
-const IMGBB_KEY = "6d207e02198a847aa98d0a2a901485a5";
+const IMGBB_KEY = "f1cbde38d1820926fd47faeb3e74975f"; // Chave extraída do seu código
 
 // --- CONTROLE DE NAVEGAÇÃO ---
 function showPage(id, el) {
@@ -362,126 +362,110 @@ function showPage(id, el) {
         el.classList.add('active');
     }
     window.scrollTo(0,0);
+    
+    // Se abrir a página de equipe, sincroniza os dados dela
+    if(id === 'pg-equipe') sincronizarDados();
 }
 
-// --- SINCRONIZAÇÃO DE DADOS ---
-// --- SINCRONIZAÇÃO DE DADOS ATUALIZADA ---
+// --- SINCRONIZAÇÃO DE DADOS (Unificada) ---
 async function sincronizarDados() {
     try {
-        const storageData = localStorage.getItem('user');
+        const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
         if (!storageData) return;
         const user = JSON.parse(storageData);
+        const userId = user.id || user._id;
 
         // 1. Atualiza dados do usuário (Saldo e Nome)
-        const resUser = await fetch(`${API_URL}/api/usuario/${user.id}`);
+        const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (resUser.ok) {
             const dadosNovos = await resUser.json();
-            localStorage.setItem('user', JSON.stringify(dadosNovos));
+            // Mantém o objeto atualizado no storage
+            localStorage.setItem('usuario', JSON.stringify(dadosNovos));
             
-            document.getElementById('user-balance').innerText = dadosNovos.saldo;
-            document.getElementById('user-name').innerText = dadosNovos.nome;
+            // Atualiza elementos na tela (se existirem)
+            const bal = document.getElementById('user-balance');
+            const nom = document.getElementById('user-name');
+            if(bal) bal.innerText = `${dadosNovos.saldo} Kz`;
+            if(nom) nom.innerText = dadosNovos.nome;
             
-            // ATUALIZA O LINK DE CONVITE NA TELA
-            const meuLink = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
+            // ATUALIZA O LINK DE CONVITE
             const linkEl = document.getElementById('link-convite');
-            if (linkEl) linkEl.innerText = meuLink;
-        }
+            if (linkEl && dadosNovos.referral_id) {
+                linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
+            }
 
-        // 2. BUSCA DADOS DA EQUIPE (Total de membros e bônus)
-        const resEquipe = await fetch(`${API_URL}/api/equipe/${user.referral_id}`);
-        if (resEquipe.ok) {
-            const equipe = await resEquipe.json();
-            document.getElementById('team-size-val').innerText = equipe.teamCount;
-            document.getElementById('team-bonus-val').innerText = equipe.teamBonus + " Kz";
+            // 2. BUSCA DADOS DA EQUIPE
+            if(dadosNovos.referral_id) {
+                const resEquipe = await fetch(`${API_URL}/api/equipe/${dadosNovos.referral_id}`);
+                if (resEquipe.ok) {
+                    const equipe = await resEquipe.json();
+                    const sizeEl = document.getElementById('team-size-val');
+                    const bonusEl = document.getElementById('team-bonus-val');
+                    if(sizeEl) sizeEl.innerText = equipe.teamCount;
+                    if(bonusEl) bonusEl.innerText = equipe.teamBonus + " Kz";
+                }
+            }
         }
     } catch (err) {
-        console.warn("Sincronização pendente...");
+        console.warn("Sincronização pendente ou erro de rede.");
     }
 }
 
-// Função para o botão copiar
+// --- FUNÇÕES DE INTERAÇÃO ---
 function copiarLink() {
-    const link = document.getElementById('link-convite').innerText;
-    navigator.clipboard.writeText(link);
-    toast("✅ Link copiado com sucesso!");
-}
-    
-// --- FUNÇÃO PARA COPIAR LINK ---
-function copiarLink() {
-    const link = document.getElementById('link-convite').innerText;
+    const linkEl = document.getElementById('link-convite');
+    if(!linkEl) return;
+    const link = linkEl.innerText;
     navigator.clipboard.writeText(link).then(() => {
         toast("✅ Link de convite copiado!");
     });
 }
 
-// --- DEPÓSITO COM HOSPEDAGEM EXTERNA (IMGBB) ---
 async function finalizarDeposito() {
     const valorInput = document.getElementById('deposito-valor');
     const imgInput = document.getElementById('comprovativo-img');
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     const user = JSON.parse(storageData);
 
-    // 1. Verificações de segurança
-    if (!imgInput.files || imgInput.files.length === 0) {
-        return toast("Selecione a foto do comprovativo!");
-    }
-    if (!valorInput.value || valorInput.value < 5000) {
-        return toast("Valor mínimo: 5.000 Kz");
-    }
+    if (!imgInput.files || imgInput.files.length === 0) return toast("Selecione a foto!");
+    if (!valorInput.value || valorInput.value < 5000) return toast("Mínimo: 5.000 Kz");
 
     toast("Hospedando imagem...");
-
-    // 2. Preparar o arquivo para o ImgBB
     const formData = new FormData();
     formData.append("image", imgInput.files[0]);
 
     try {
-        // 3. O FETCH PRECISA DO BODY (Onde vai a foto)
-        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=f1cbde38d1820926fd47faeb3e74975f`, {
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
             method: "POST",
-            body: formData // <-- ESSA LINHA É A QUE FALTAVA
+            body: formData
         });
-
         const dataImg = await resImg.json();
 
         if (dataImg.success) {
-            const linkDaFoto = dataImg.data.url;
-            toast("Salvando no banco...");
-
-            // 4. Enviar para o seu backend no Render
             const resFinal = await fetch(`${API_URL}/api/deposito`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     usuario_id: user.id || user._id,
                     valor: valorInput.value,
-                    comprovativo: linkDaFoto
+                    comprovativo: dataImg.data.url
                 })
             });
-
             if (resFinal.ok) {
                 toast("✅ Enviado para análise!");
                 showPage('pg-lar');
                 voltarPasso1();
-            } else {
-                toast("Erro ao salvar dados no Render.");
             }
         } else {
-            // Caso o ImgBB rejeite por algum motivo (ex: arquivo muito grande)
-            console.error("Erro detalhado ImgBB:", dataImg);
-            toast("Erro no servidor de imagem: " + (dataImg.error ? dataImg.error.message : "Tente novamente"));
+            toast("Erro ao carregar imagem.");
         }
-    } catch (err) {
-        console.error("Erro de conexão:", err);
-        toast("Erro de rede. Verifique a internet.");
-    }
+    } catch (err) { toast("Erro de conexão."); }
 }
 
-// --- OUTRAS FUNÇÕES ---
 async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
-
+    
     toast("Processando...");
     try {
         const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -496,6 +480,7 @@ async function completeTask(val) {
     } catch(e) { toast("Erro ao salvar"); }
 }
 
+// --- UTILITÁRIOS ---
 function logout() {
     localStorage.clear();
     window.location.href = 'login.html';
@@ -525,11 +510,6 @@ function avancarPagamento() {
 function voltarPasso1() {
     document.getElementById('deposito-step-2').classList.add('hidden');
     document.getElementById('deposito-step-1').classList.remove('hidden');
-}
-
-function showTarefas(tipo) {
-    document.getElementById('tarefas-nao-concluidas').classList.toggle('hidden', tipo !== 'nao-concluidas');
-    document.getElementById('tarefas-concluidas').classList.toggle('hidden', tipo === 'nao-concluidas');
 }
 
 window.addEventListener('load', () => {
