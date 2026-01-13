@@ -182,12 +182,12 @@
 <div id="pg-meu" class="view hidden">
     <div class="meu-balance-area">
         <p style="font-size:12px; opacity:0.8;">Balanço Total</p>
-        <h2 id="user-balance" style="font-size:36px; margin:10px 0;">0</h2>
+        <h2 id="user-balance" class="balance-amount" style="font-size:36px; margin:10px 0;">0</h2>
         <p style="font-size:12px;">Kwanza (Kz)</p>
     </div>
 
     <div class="meu-user-stripe">
-        <span>lavrentemambondo@gmail.com</span>
+        <span id="user-name">Carregando...</span>
         <span style="background:var(--accent-green); color:#000; padding:2px 10px; border-radius:15px; font-weight:bold;">VIP 0</span>
     </div>
 
@@ -202,7 +202,7 @@
 
         <div class="meu-menu-row" onclick="showPage('pg-equipe')"><span>Minha Equipe</span> <i class="fa-solid fa-chevron-right"></i></div>
         <div class="meu-menu-row" onclick="showPage('pg-senha')"><span>Alterar Senha</span> <i class="fa-solid fa-chevron-right"></i></div>
-        <div class="meu-menu-row" style="border:none;" onclick="window.location.href='login.html'"><span style="color:red;">Sair</span> <i class="fa-solid fa-chevron-right"></i></div>
+        <div class="meu-menu-row" style="border:none;" onclick="logout()"><span style="color:red;">Sair</span> <i class="fa-solid fa-chevron-right"></i></div>
     </div>
 </div>
 
@@ -344,9 +344,7 @@
 </div>
 
 <script>
-let balance = 0;
-let teamBonus = 0;
-let teamCount = 0;
+const API_URL = "https://warnermida-1.onrender.com";
 
 function showPage(id, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
@@ -371,20 +369,23 @@ function copiarLink() {
     toast("Link de convite copiado!");
 }
 
-function inviteFriend() {
-    teamCount++;
-    const bonus = 500;
-    teamBonus += bonus;
-    balance += bonus;
-    updateUI();
-    toast('Novo convite! +500 Kz');
-}
-
 // Funções de Tarefas
-function completeTask(val) {
-    balance += val;
-    updateUI();
-    toast('Tarefa Concluída! +' + val + ' Kz');
+async function completeTask(val) {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return toast("Faça login primeiro");
+
+    toast("Processando recompensa...");
+    try {
+        const res = await fetch(`${API_URL}/api/completar-tarefa`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
+        });
+        if(res.ok) {
+            toast('Tarefa Concluída! +' + val + ' Kz');
+            sincronizarDados();
+        }
+    } catch(e) { toast("Erro ao salvar tarefa"); }
 }
 
 function showTarefas(tipo) {
@@ -425,114 +426,61 @@ function copiarIBAN() {
     toast("IBAN copiado com sucesso!");
 }
 
-function finalizarDeposito() {
-    const file = document.getElementById('comprovativo-img').value;
-    if (!file) {
+async function finalizarDeposito() {
+    const valor = document.getElementById('deposito-valor').value;
+    const imgInput = document.getElementById('comprovativo-img');
+    const user = JSON.parse(localStorage.getItem('user'));
+
+    if (!imgInput.files[0]) {
         toast("Por favor, anexe o comprovativo!");
         return;
     }
+
     toast("Enviando para o administrador...");
-    setTimeout(() => {
-        toast("Sucesso! O Admin verificará o seu depósito em breve.");
-        showPage('pg-lar');
-        voltarPasso1();
-        document.getElementById('deposito-valor').value = '';
-        document.getElementById('comprovativo-img').value = '';
-    }, 2500);
-}
 
-function confirmarRetirada() {
-    const valor = document.getElementById('valor-retirada').value;
-    const iban = document.getElementById('iban-retirada').value;
-    const nome = document.getElementById('nome-retirada').value;
-    const senha = document.getElementById('senha-retirada').value;
-    
-    if (valor >= 5000 && iban && nome && senha) {
-        toast('Levantamento confirmado! Aguarde processamento.');
-        showPage('pg-lar');
-    } else if (valor < 5000) {
-        toast('Valor mínimo de levantamento é 5.000 Kz');
-    } else {
-        toast('Por favor, preencha todos os campos!');
-    }
-}
-
-// Suporte
-function enviarMensagemSuporte() {
-    const mensagem = document.getElementById('mensagem-suporte').value;
-    if (mensagem) {
-        const chatMessages = document.getElementById('chat-messages');
-        const mensagemElement = document.createElement('div');
-        mensagemElement.style = "background: #6a3ab2; color: white; padding: 10px; border-radius: 10px; margin-bottom: 10px; align-self: flex-end; max-width: 80%; margin-left: auto;";
-        mensagemElement.innerHTML = `<div>${mensagem}</div>`;
-        chatMessages.appendChild(mensagemElement);
-        document.getElementById('mensagem-suporte').value = '';
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        
-        // Simulação de resposta
-        setTimeout(() => {
-            receberMensagemSuporte("Olá! Recebemos sua mensagem. Um atendente entrará em contato em breve.");
-        }, 1500);
-    }
-}
-
-function receberMensagemSuporte(mensagem) {
-    const chatMessages = document.getElementById('chat-messages');
-    const mensagemElement = document.createElement('div');
-    mensagemElement.style = "background: #eee; color: #333; padding: 10px; border-radius: 10px; margin-bottom: 10px; align-self: flex-start; max-width: 80%;";
-    mensagemElement.innerHTML = `<div>${mensagem}</div>`;
-    chatMessages.appendChild(mensagemElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// Backend Integration (Login / Registro)
-async function login() {
-    const email = document.getElementById('email-login').value;
-    const senha = document.getElementById('senha-login').value;
+    const formData = new FormData();
+    formData.append('usuario_id', user.id || user._id);
+    formData.append('valor', valor);
+    formData.append('comprovativo', imgInput.files[0]);
 
     try {
-        const res = await fetch('https://warnermida-1.onrender.com/api/login', {
+        const res = await fetch(`${API_URL}/api/deposito`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, senha })
+            body: formData
         });
 
-        if(res.ok) {
-            const user = await res.json();
-            localStorage.setItem('user', JSON.stringify(user));
-            window.location.href = 'index.html';
+        if (res.ok) {
+            toast("Sucesso! O Admin verificará o seu depósito.");
+            showPage('pg-lar');
+            voltarPasso1();
+            document.getElementById('deposito-valor').value = '';
         } else {
-            alert("Login falhou!");
+            toast("Erro ao enviar depósito.");
         }
-    } catch (e) { console.error(e); }
+    } catch (err) { toast("Erro de conexão"); }
 }
 
-async function registro() {
-    const nome = document.getElementById('nome-registro').value;
-    const email = document.getElementById('email-registro').value;
-    const senha = document.getElementById('senha-registro').value;
+async function sincronizarDados() {
+    const userLocal = JSON.parse(localStorage.getItem('user'));
+    if (!userLocal) return;
 
     try {
-        const res = await fetch('https://warnermida-1.onrender.com/api/registrar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, email, senha })
-        });
+        const res = await fetch(`${API_URL}/api/usuario/${userLocal.id || userLocal._id}`);
+        if (res.ok) {
+            const userAtualizado = await res.json();
+            localStorage.setItem('user', JSON.stringify(userAtualizado));
 
-        if(res.ok) {
-            alert("Conta criada!");
-            window.location.href = 'login.html';
-        } else {
-            alert("Erro ao criar conta.");
+            const nomeElement = document.getElementById('user-name');
+            const saldoElement = document.getElementById('user-balance');
+            const teamSize = document.getElementById('team-size-val');
+            const teamBonus = document.getElementById('team-bonus-val');
+
+            if (nomeElement) nomeElement.innerText = userAtualizado.nome || userAtualizado.email;
+            if (saldoElement) saldoElement.innerText = userAtualizado.saldo;
+            if (teamSize) teamSize.innerText = userAtualizado.teamCount || 0;
+            if (teamBonus) teamBonus.innerText = (userAtualizado.teamBonus || 0) + " Kz";
         }
-    } catch (e) { console.error(e); }
-} 
-
-// UI Helpers
-function updateUI() {
-    document.getElementById('user-balance').innerText = balance;
-    document.getElementById('team-bonus-val').innerText = teamBonus + " Kz";
-    document.getElementById('team-size-val').innerText = teamCount;
+    } catch (err) { console.error("Erro sincronia:", err); }
 }
 
 function toast(msg) {
@@ -542,6 +490,19 @@ function toast(msg) {
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2500);
 }
+
+function logout() {
+    localStorage.removeItem('user');
+    window.location.href = 'login.html';
+}
+
+window.addEventListener('load', () => {
+    if (!localStorage.getItem('user')) {
+        window.location.href = 'login.html';
+    } else {
+        sincronizarDados();
+    }
+});
 
 function changeLanguage(lang) {
     toast('Idioma alterado para ' + (lang === 'pt' ? 'Português' : 'English'));
