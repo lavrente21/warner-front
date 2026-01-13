@@ -13,7 +13,7 @@ async function registro() {
     const senha = document.getElementById('senha-registro').value;
     const senhaConfirm = document.getElementById('senha-registro-confirm').value;
     
-    // CAPTURA O CÓDIGO DE CONVITE DA COLUNA (CAMPO) QUE ADICIONAMOS
+    // CAPTURA O CÓDIGO DE CONVITE DA COLUNA (CAMPO) 
     const refInput = document.getElementById('reg-ref');
     const ref = refInput ? refInput.value : null;
 
@@ -24,7 +24,7 @@ async function registro() {
         const res = await fetch(`${API_URL}/api/registrar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nome, email, senha, ref }) // 'ref' adicionado aqui
+            body: JSON.stringify({ nome, email, senha, ref }) // 'ref' enviado aqui
         });
         const data = await res.json();
         if (res.ok) {
@@ -75,7 +75,7 @@ function carregarDadosUsuario() {
         if (saldoElement) saldoElement.innerText = `${user.saldo} Kz`;
         if (nomeElement) nomeElement.innerText = user.nome;
 
-        // ADICIONADO: Gerar Link de Convite automático se houver o campo na tela
+        // ADICIONADO: Gerar Link de Convite automático
         const linkEl = document.getElementById('link-convite');
         if (linkEl && user.referral_id) {
             linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${user.referral_id}`;
@@ -108,6 +108,7 @@ async function finalizarDeposito() {
     } catch (err) { toast("Erro ao enviar"); }
 }
 
+// --- ATUALIZAÇÃO DE SALDO ---
 async function atualizarSaldoReal() {
     const user = JSON.parse(localStorage.getItem('usuario'));
     if (!user) return;
@@ -116,9 +117,8 @@ async function atualizarSaldoReal() {
         const res = await fetch(`${API_URL}/api/usuario/${user.id}`);
         const data = await res.json();
         if (res.ok) {
-            // Atualiza o saldo na tela e no localStorage
             user.saldo = data.saldo;
-            user.referral_id = data.referral_id; // Garante que temos o ID de convite
+            user.referral_id = data.referral_id; 
             localStorage.setItem('usuario', JSON.stringify(user));
             const saldoElement = document.querySelector('.balance-amount');
             if (saldoElement) saldoElement.innerText = `${data.saldo} Kz`;
@@ -126,7 +126,7 @@ async function atualizarSaldoReal() {
     } catch (err) { console.error("Erro ao atualizar saldo"); }
 }
 
-// --- ADICIONADO: LÓGICA ESPECÍFICA DE EQUIPE ---
+// --- LÓGICA DE EQUIPE ---
 async function carregarDadosEquipe() {
     const user = JSON.parse(localStorage.getItem('usuario'));
     if (!user || !user.referral_id) return;
@@ -144,28 +144,17 @@ async function carregarDadosEquipe() {
     } catch (err) { console.error("Erro ao carregar equipe"); }
 }
 
-// --- ADICIONADO: COPIAR LINK ---
+// --- COPIAR LINK ---
 function copiarLink() {
-    const texto = document.getElementById('link-convite').innerText;
+    const linkElement = document.getElementById('link-convite');
+    if (!linkElement) return;
+    const texto = linkElement.innerText;
     navigator.clipboard.writeText(texto).then(() => {
         toast("✅ Link de convite copiado!");
     });
 }
 
-// Chame essa função dentro do window.onload atualizado
-window.onload = () => {
-    carregarDadosUsuario();
-    atualizarSaldoReal();
-    carregarDadosEquipe(); // Chamada de equipe adicionada
-
-    // Auto-preencher código de convite se estiver na página de registro
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get('ref');
-    const inputRef = document.getElementById('reg-ref');
-    if (ref && inputRef) inputRef.value = ref;
-};
-
-// Função para buscar dados novos do servidor e atualizar a tela
+// --- SINCRONIZAÇÃO GERAL ---
 async function sincronizarDados() {
     const userLocal = JSON.parse(localStorage.getItem('usuario'));
     if (!userLocal) return;
@@ -174,18 +163,14 @@ async function sincronizarDados() {
         const res = await fetch(`${API_URL}/api/usuario/${userLocal.id}`);
         if (res.ok) {
             const userAtualizado = await res.json();
-            
-            // Atualiza o localStorage com o saldo novo
             localStorage.setItem('usuario', JSON.stringify(userAtualizado));
 
-            // Atualiza o nome e o saldo no HTML
             const nomeElement = document.getElementById('user-name');
             const saldoElement = document.querySelector('.balance-amount');
 
             if (nomeElement) nomeElement.innerText = userAtualizado.nome;
             if (saldoElement) saldoElement.innerText = `${userAtualizado.saldo} Kz`;
             
-            // Sincroniza também a equipe
             carregarDadosEquipe();
         }
     } catch (err) {
@@ -193,5 +178,19 @@ async function sincronizarDados() {
     }
 }
 
-// Chamar a sincronização sempre que a página abrir
+// --- EVENTOS DE CARREGAMENTO ---
+window.onload = () => {
+    carregarDadosUsuario();
+    atualizarSaldoReal();
+    carregarDadosEquipe();
+
+    // Auto-preencher campo de convite na página de registro
+    const params = new URLSearchParams(window.location.search);
+    const ref = params.get('ref');
+    const inputRef = document.getElementById('reg-ref');
+    if (ref && inputRef) {
+        inputRef.value = ref;
+    }
+};
+
 window.addEventListener('load', sincronizarDados);
