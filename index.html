@@ -368,42 +368,44 @@ function showPage(id, el) {
 // --- SINCRONIZAÇÃO DE DADOS ATUALIZADA ---
 async function sincronizarDados() {
     try {
-        const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+        const storageData = localStorage.getItem('user');
         if (!storageData) return;
-
         const user = JSON.parse(storageData);
-        
-        // 1. Busca dados atualizados do perfil
+
+        // 1. Atualiza dados do usuário (Saldo e Nome)
         const resUser = await fetch(`${API_URL}/api/usuario/${user.id}`);
         if (resUser.ok) {
-            const novoDado = await resUser.json();
-            localStorage.setItem('user', JSON.stringify(novoDado));
+            const dadosNovos = await resUser.json();
+            localStorage.setItem('user', JSON.stringify(dadosNovos));
             
-            // Atualiza Nome e Saldo na tela
-            if(document.getElementById('user-name')) document.getElementById('user-name').innerText = novoDado.nome;
-            if(document.getElementById('user-balance')) document.getElementById('user-balance').innerText = novoDado.saldo;
+            document.getElementById('user-balance').innerText = dadosNovos.saldo;
+            document.getElementById('user-name').innerText = dadosNovos.nome;
             
-            // Atualiza o Link de Convite na aba Equipe
-            const linkArea = document.getElementById('link-convite');
-            if(linkArea) {
-                linkArea.innerText = `https://warnermidia.netlify.app/registro.html?ref=${novoDado.referral_id}`;
-            }
+            // ATUALIZA O LINK DE CONVITE NA TELA
+            const meuLink = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
+            const linkEl = document.getElementById('link-convite');
+            if (linkEl) linkEl.innerText = meuLink;
         }
 
-        // 2. Busca dados da equipe usando o referral_id
-        const refId = user.referral_id || (JSON.parse(localStorage.getItem('user'))).referral_id;
-        const resEquipe = await fetch(`${API_URL}/api/equipe/${refId}`);
+        // 2. BUSCA DADOS DA EQUIPE (Total de membros e bônus)
+        const resEquipe = await fetch(`${API_URL}/api/equipe/${user.referral_id}`);
         if (resEquipe.ok) {
             const equipe = await resEquipe.json();
-            if (document.getElementById('team-size-val')) document.getElementById('team-size-val').innerText = equipe.teamCount;
-            if (document.getElementById('team-bonus-val')) document.getElementById('team-bonus-val').innerText = equipe.teamBonus + " Kz";
+            document.getElementById('team-size-val').innerText = equipe.teamCount;
+            document.getElementById('team-bonus-val').innerText = equipe.teamBonus + " Kz";
         }
-
     } catch (err) {
-        console.warn("Erro na sincronização:", err);
+        console.warn("Sincronização pendente...");
     }
 }
 
+// Função para o botão copiar
+function copiarLink() {
+    const link = document.getElementById('link-convite').innerText;
+    navigator.clipboard.writeText(link);
+    toast("✅ Link copiado com sucesso!");
+}
+    
 // --- FUNÇÃO PARA COPIAR LINK ---
 function copiarLink() {
     const link = document.getElementById('link-convite').innerText;
