@@ -41,37 +41,35 @@
 <script>
     const API_URL = "https://warnermida-1.onrender.com";
 
-    // Pega o código ?ref=userXXXX da URL
-    const params = new URLSearchParams(window.location.search);
-    const codigoPadrinho = params.get('ref');
+    async function login() {
+        // Pegando os IDs corretos que estão no HTML acima
+        const email = document.getElementById('email-login').value;
+        const senha = document.getElementById('senha-login').value;
 
-    async function realizarRegistro() {
-        const nome = document.getElementById('reg-nome').value;
-        const email = document.getElementById('reg-email').value;
-        const senha = document.getElementById('reg-senha').value;
+        if (!email || !senha) {
+            alert("Por favor, preencha todos os campos.");
+            return;
+        }
 
         try {
-            const res = await fetch(`${API_URL}/api/registrar`, {
+            const res = await fetch(`${API_URL}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    nome, 
-                    email, 
-                    senha, 
-                    ref: codigoPadrinho // Envia o código de quem convidou
-                })
+                body: JSON.stringify({ email, senha })
             });
 
             const data = await res.json();
+
             if (res.ok) {
-                alert("Conta criada! Seu código é: " + data.referral_id);
-                localStorage.setItem('user', JSON.stringify(data));
+                // SALVA SEMPRE COMO 'usuario' PARA COMBINAR COM SEU SCRIPT.JS
+                localStorage.setItem('usuario', JSON.stringify(data));
                 window.location.href = 'index.html';
             } else {
-                alert(data.error);
+                alert(data.error || "Dados incorretos");
             }
         } catch (err) {
-            alert("Erro ao conectar com o servidor.");
+            console.error("Erro:", err);
+            alert("Erro de conexão com o servidor.");
         }
     }
 </script>
