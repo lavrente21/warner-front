@@ -345,6 +345,7 @@
 
 <script>
 const API_URL = "https://warnermida-1.onrender.com";
+const IMGBB_KEY = "6d207e02198a847aa98d0a2a901485a5";
 
 // --- CONTROLE DE NAVEGAÇÃO ---
 function showPage(id, el) {
@@ -363,11 +364,9 @@ function showPage(id, el) {
     window.scrollTo(0,0);
 }
 
-// --- FUNÇÃO DE SINCRONIZAÇÃO (O CORAÇÃO DO LOGIN) ---
+// --- SINCRONIZAÇÃO DE DADOS ---
 async function sincronizarDados() {
-    // Busca qualquer uma das chaves possíveis para evitar erro de login
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    
     if (!storageData) {
         window.location.href = 'login.html';
         return;
@@ -376,96 +375,47 @@ async function sincronizarDados() {
     const userLocal = JSON.parse(storageData);
     const userId = userLocal.id || userLocal._id;
 
-    if (!userId) {
-        console.error("ID do usuário não encontrado");
-        return;
-    }
-
     try {
         const res = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (res.ok) {
             const userAtualizado = await res.json();
-            
-            // Padroniza o salvamento para 'user'
             localStorage.setItem('user', JSON.stringify(userAtualizado));
 
-            // Atualiza a Interface
-            const nomeElement = document.getElementById('user-name');
-            const saldoElement = document.getElementById('user-balance');
-            const teamSize = document.getElementById('team-size-val');
-            const teamBonus = document.getElementById('team-bonus-val');
-
-            if (nomeElement) nomeElement.innerText = userAtualizado.nome || userAtualizado.email;
-            if (saldoElement) saldoElement.innerText = userAtualizado.saldo;
-            if (teamSize) teamSize.innerText = userAtualizado.teamCount || 0;
-            if (teamBonus) teamBonus.innerText = (userAtualizado.teamBonus || 0) + " Kz";
+            document.getElementById('user-name').innerText = userAtualizado.nome || userAtualizado.email;
+            document.getElementById('user-balance').innerText = userAtualizado.saldo;
+            document.getElementById('team-size-val').innerText = userAtualizado.teamCount || 0;
+            document.getElementById('team-bonus-val').innerText = (userAtualizado.teamBonus || 0) + " Kz";
         }
-    } catch (err) { 
-        console.error("Erro ao sincronizar dados:", err); 
-    }
+    } catch (err) { console.error("Erro sincronia:", err); }
 }
 
-// --- VERIFICAÇÃO AO CARREGAR PÁGINA ---
-window.addEventListener('load', () => {
-    const isLogged = localStorage.getItem('user') || localStorage.getItem('usuario');
-    if (!isLogged) {
-        window.location.href = 'login.html';
-    } else {
-        sincronizarDados();
-    }
-});
-
-// --- FUNÇÕES DE AÇÃO ---
-async function completeTask(val) {
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
-    
-    if (!user) return toast("Faça login primeiro");
-
-    toast("Processando recompensa...");
-    try {
-        const res = await fetch(`${API_URL}/api/completar-tarefa`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
-        });
-        if(res.ok) {
-            toast('Tarefa Concluída! +' + val + ' Kz');
-            sincronizarDados();
-        }
-    } catch(e) { toast("Erro ao salvar tarefa"); }
-}
-
-async function finalizarDeposito() {
+// --- DEPÓSITO COM HOSPEDAGEM EXTERNA (IMGBB) ---
 async function finalizarDeposito() {
     const valor = document.getElementById('deposito-valor').value;
     const imgInput = document.getElementById('comprovativo-img');
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
 
     if (!imgInput.files[0]) return toast("Anexe o comprovativo!");
+    if (valor < 5000) return toast("Mínimo 5.000 Kz");
 
-    toast("Fazendo upload para FreeImage...");
+    toast("Hospedando imagem...");
 
     const formData = new FormData();
-    // O FreeImage usa 'source' para o arquivo e 'action=upload'
-    formData.append("source", imgInput.files[0]); 
-    formData.append("action", "upload");
+    formData.append("image", imgInput.files[0]);
 
     try {
-        // A URL correta de API deles (geralmente requer uma chave de API própria)
-        // Nota: Substitua '6d207e02198a847aa98d0a2a901485a5' pela sua chave do FreeImage se for diferente da do ImgBB
-        const resImg = await fetch("https://freeimage.host/api/1/upload?key=6d207e02198a847aa98d0a2a901485a5", {
-            method: "POST", // NUNCA GET para arquivos
+        // Envio para o ImgBB
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+            method: "POST",
             body: formData
         });
-
         const dataImg = await resImg.json();
 
-        if (dataImg.status_code === 200) {
-            const linkFinal = dataImg.image.url;
+        if (dataImg.success) {
+            const linkFinal = dataImg.data.url;
+            toast("Salvando no sistema...");
 
-            // Envia para o seu servidor no Render
+            // Envio para o seu Backend no Render
             const resFinal = await fetch(`${API_URL}/api/deposito`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -477,49 +427,60 @@ async function finalizarDeposito() {
             });
 
             if (resFinal.ok) {
-                toast("Depósito enviado!");
+                toast("Sucesso! Depósito em análise.");
                 showPage('pg-lar');
+                voltarPasso1();
             }
         } else {
-            toast("Erro no FreeImage: " + dataImg.status_txt);
+            toast("Erro no servidor de imagem.");
         }
     } catch (err) {
-        toast("Erro na conexão");
+        toast("Erro de conexão");
         console.error(err);
     }
 }
 
+// --- OUTRAS FUNÇÕES ---
+async function completeTask(val) {
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
+    if (!user) return toast("Faça login");
+
+    toast("Processando...");
+    try {
+        const res = await fetch(`${API_URL}/api/completar-tarefa`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
+        });
+        if(res.ok) {
+            toast('Tarefa Concluída! +' + val + ' Kz');
+            sincronizarDados();
+        }
+    } catch(e) { toast("Erro ao salvar"); }
+}
+
 function logout() {
-    localStorage.removeItem('user');
-    localStorage.removeItem('usuario');
+    localStorage.clear();
     window.location.href = 'login.html';
 }
 
-// --- UTILITÁRIOS ---
 function toast(msg) {
     const t = document.createElement('div');
-    t.style = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 20px; border-radius:25px; font-size:12px; z-index:9999; text-align:center; min-width: 200px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);";
+    t.style = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 20px; border-radius:25px; font-size:12px; z-index:9999; text-align:center; min-width:200px;";
     t.innerText = msg;
     document.body.appendChild(t);
     setTimeout(() => t.remove(), 2500);
 }
 
-function copiarLink() {
-    const link = document.getElementById('link-convite').innerText;
-    navigator.clipboard.writeText(link);
-    toast("Link copiado!");
-}
-
 function copiarIBAN() {
-    const iban = document.getElementById('iban-txt').innerText;
-    navigator.clipboard.writeText(iban);
+    navigator.clipboard.writeText(document.getElementById('iban-txt').innerText);
     toast("IBAN copiado!");
 }
 
 function avancarPagamento() {
-    const valor = document.getElementById('deposito-valor').value;
-    if (valor < 5000) return toast("Mínimo 5.000 Kz");
-    document.getElementById('valor-confirmado').innerText = valor + " Kz";
+    const v = document.getElementById('deposito-valor').value;
+    if (v < 5000) return toast("Mínimo 5.000 Kz");
+    document.getElementById('valor-confirmado').innerText = v + " Kz";
     document.getElementById('deposito-step-1').classList.add('hidden');
     document.getElementById('deposito-step-2').classList.remove('hidden');
 }
@@ -530,16 +491,17 @@ function voltarPasso1() {
 }
 
 function showTarefas(tipo) {
-    const abas = document.querySelectorAll('.task-tab-btn');
     document.getElementById('tarefas-nao-concluidas').classList.toggle('hidden', tipo !== 'nao-concluidas');
     document.getElementById('tarefas-concluidas').classList.toggle('hidden', tipo === 'nao-concluidas');
-    abas[0].classList.toggle('active', tipo === 'nao-concluidas');
-    abas[1].classList.toggle('active', tipo !== 'nao-concluidas');
 }
 
-function changeLanguage(lang) {
-    toast('Idioma: ' + (lang === 'pt' ? 'Português' : 'English'));
-}
+window.addEventListener('load', () => {
+    if (!(localStorage.getItem('user') || localStorage.getItem('usuario'))) {
+        window.location.href = 'login.html';
+    } else {
+        sincronizarDados();
+    }
+});
 </script>
 </body>
 </html>
