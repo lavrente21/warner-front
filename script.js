@@ -120,3 +120,32 @@ window.onload = () => {
     carregarDadosUsuario();
     atualizarSaldoReal();
 };
+
+
+// Função para buscar dados novos do servidor e atualizar a tela
+async function sincronizarDados() {
+    const userLocal = JSON.parse(localStorage.getItem('usuario'));
+    if (!userLocal) return;
+
+    try {
+        const res = await fetch(`${API_URL}/api/usuario/${userLocal.id}`);
+        if (res.ok) {
+            const userAtualizado = await res.json();
+            
+            // Atualiza o localStorage com o saldo novo
+            localStorage.setItem('usuario', JSON.stringify(userAtualizado));
+
+            // Atualiza o nome e o saldo no HTML
+            const nomeElement = document.getElementById('user-name');
+            const saldoElement = document.querySelector('.balance-amount');
+
+            if (nomeElement) nomeElement.innerText = userAtualizado.nome;
+            if (saldoElement) saldoElement.innerText = `${userAtualizado.saldo} Kz`;
+        }
+    } catch (err) {
+        console.error("Erro ao sincronizar dados:", err);
+    }
+}
+
+// Chamar a sincronização sempre que a página abrir
+window.addEventListener('load', sincronizarDados);
