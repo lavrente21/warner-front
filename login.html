@@ -29,6 +29,40 @@
             <p style="text-align: center; margin-top: 10px;">Não tem conta? <span style="color: #6a3ab2; cursor: pointer;" onclick="window.location.href='registro.html'">Registre-se</span></p>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        const API_URL = "https://warnermida-1.onrender.com";
+
+        async function login() {
+            const email = document.getElementById('email-login').value;
+            const senha = document.getElementById('senha-login').value;
+
+            if (!email || !senha) {
+                alert("Por favor, preencha todos os campos.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    // Salva os dados para o index.html usar
+                    localStorage.setItem('user', JSON.stringify(data));
+                    window.location.href = 'index.html';
+                } else {
+                    alert(data.error || "Email ou senha incorretos.");
+                }
+            } catch (err) {
+                console.error("Erro de conexão:", err);
+                alert("Servidor em manutenção ou erro de conexão.");
+            }
+        }
+    </script>
 </body>
 </html>
