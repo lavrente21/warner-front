@@ -99,8 +99,10 @@
 </div>
 
 <script>
-    const API_URL = "https://warnermida-1.onrender.com";
+const API_URL = "https://warnermida-1.onrender.com";
+    let usuarioChatAtual = null;
 
+    // --- NAVEGAÇÃO ENTRE ABAS ---
     function tab(btn, id) {
         document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.task-tab-btn').forEach(b => b.classList.remove('active'));
@@ -109,15 +111,16 @@
         
         if(id === 'sec-depositos') carregarDepositos();
         if(id === 'sec-levantamentos') carregarLevantamentos();
+        if(id === 'sec-suporte') carregarListaSuporte(); // Carrega conversas ao abrir suporte
     }
 
+    // --- GESTÃO DE DEPÓSITOS ---
     async function carregarDepositos() {
         const container = document.getElementById('lista-depositos');
         try {
             const res = await fetch(`${API_URL}/api/admin/depositos-pendentes`);
             const dados = await res.json();
             container.innerHTML = "";
-
             if(dados.length === 0) container.innerHTML = "<p>Nenhum depósito pendente.</p>";
 
             dados.forEach(dep => {
@@ -125,7 +128,7 @@
                     <div class="admin-card">
                         <div style="display: flex; justify-content: space-between;">
                             <div>
-                                <b>${dep.email || 'Usuário ID: ' + dep.usuario_id}</b>
+                                <b>${dep.email || 'ID: ' + dep.usuario_id}</b>
                                 <p style="color: #27ae60; font-weight: bold; font-size: 16px;">+ ${dep.valor} Kz</p>
                                 <small>Data: ${new Date(dep.data).toLocaleDateString()}</small>
                             </div>
@@ -138,7 +141,7 @@
                         </div>
                     </div>`;
             });
-        } catch(e) { container.innerHTML = "Erro ao conectar com servidor."; }
+        } catch(e) { console.error(e); }
     }
 
     async function processarDep(id, status) {
@@ -153,13 +156,13 @@
         } catch(e) { alert("Erro de conexão."); }
     }
 
+    // --- GESTÃO DE LEVANTAMENTOS ---
     async function carregarLevantamentos() {
         const tbody = document.getElementById('lista-saques');
         try {
             const res = await fetch(`${API_URL}/api/admin/saques-pendentes`);
             const saques = await res.json();
             tbody.innerHTML = "";
-
             saques.forEach(s => {
                 tbody.innerHTML += `
                     <tr>
@@ -167,8 +170,8 @@
                         <td style="color:red;">${s.valor} Kz</td>
                         <td>${s.iban}<br><small>${s.banco}</small></td>
                         <td>
-                            <button onclick="processarSaque('${s.id}', 'pago')" style="background:#27ae60; color:white; border:none; padding:5px; border-radius:5px;">Pagar</button>
-                            <button onclick="processarSaque('${s.id}', 'rejeitado')" style="background:#666; color:white; border:none; padding:5px; border-radius:5px;">Recusar</button>
+                            <button onclick="processarSaque('${s.id}', 'pago')" style="background:#27ae60; color:white; border:none; padding:5px; cursor:pointer;">Pagar</button>
+                            <button onclick="processarSaque('${s.id}', 'rejeitado')" style="background:#666; color:white; border:none; padding:5px; cursor:pointer;">Recusar</button>
                         </td>
                     </tr>`;
             });
@@ -187,14 +190,68 @@
         } catch(e) { alert("Erro."); }
     }
 
+    // --- SISTEMA DE SUPORTE (CHAT REAL) ---
+    async function carregarListaSuporte() {
+        const userList = document.querySelector('.user-list');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/suporte/conversas`);
+            const conversas = await res.json();
+            userList.innerHTML = '<div style="padding: 10px; font-size: 11px; opacity: 0.6;">MENSAGENS RECENTES</div>';
+            
+            conversas.forEach(c => {
+                userList.innerHTML += `
+                    <div class="user-item ${usuarioChatAtual == c.id ? 'active' : ''}" onclick="abrirChat('${c.id}', '${c.nome || c.email}')">
+                        <b>${c.nome || 'Usuário'}</b>
+                        <p style="font-size: 10px; opacity: 0.7;">${c.mensagem.substring(0, 20)}...</p>
+                    </div>`;
+            });
+        } catch(e) { console.error("Erro ao carregar suporte"); }
+    }
+
+    async function abrirChat(id, nome) {
+        usuarioChatAtual = id;
+        document.getElementById('chat-header').innerText = nome;
+        
+        try {
+            const res = await fetch(`${API_URL}/api/suporte/historico/${id}`);
+            const mensagens = await res.json();
+            const box = document.getElementById('admin-chat-messages');
+            box.innerHTML = "";
+            
+            mensagens.forEach(m => {
+                const classe = m.enviado_por === 'admin' ? 'enviada' : 'recebida';
+                box.innerHTML += `<div class="mensagem ${classe}"><div class="conteudo">${m.mensagem}</div></div>`;
+            });
+            box.scrollTop = box.scrollHeight;
+        } catch(e) { alert("Erro ao abrir chat."); }
+    }
+
+    async function enviarMensagemAdmin() {
+        const input = document.getElementById('admin-reply');
+        const msg = input.value;
+        if(!msg || !usuarioChatAtual) return;
+
+        try {
+            const res = await fetch(`${API_URL}/api/suporte/enviar`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    usuario_id: usuarioChatAtual,
+                    enviado_por: 'admin',
+                    mensagem: msg
+                })
+            });
+            if(res.ok) {
+                input.value = "";
+                abrirChat(usuarioChatAtual, document.getElementById('chat-header').innerText);
+            }
+        } catch(e) { alert("Erro ao enviar"); }
+    }
+
     function verComprovativo(url) {
         const modal = document.getElementById('modal-comprovativo');
         document.getElementById('img-comprovativo').src = url;
         modal.style.display = 'flex';
-    }
-
-    function enviarMensagemAdmin() {
-        alert("Função de chat será vinculada ao Firebase/Banco em breve.");
     }
 
     window.onload = carregarDepositos;
