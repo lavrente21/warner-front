@@ -7,29 +7,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Ajustes para o Layout do Administrador */
         .admin-section { display: none; padding: 15px; }
         .admin-section.active { display: block; }
-        
         .admin-card { 
             background: white; color: #333; padding: 15px; 
             border-radius: 12px; margin-bottom: 15px; 
-            border-left: 5px solid var(--primary-purple);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            border-left: 5px solid #6a11cb;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
         }
-
-        /* Estilo da Tabela para Muitos Dados */
         .admin-table { width: 100%; border-collapse: collapse; background: white; color: #333; border-radius: 10px; overflow: hidden; }
         .admin-table th { background: #f4f4f4; padding: 12px; text-align: left; font-size: 13px; border-bottom: 2px solid #eee; }
         .admin-table td { padding: 12px; border-bottom: 1px solid #eee; font-size: 12px; }
-
-        /* Suporte Multi-usuário */
         .support-grid { display: grid; grid-template-columns: 280px 1fr; gap: 10px; height: 75vh; background: #fff; border-radius: 12px; overflow: hidden; }
         .user-list { background: #1a1b2e; color: white; overflow-y: auto; border-right: 1px solid #ddd; }
         .user-item { padding: 15px; border-bottom: 1px solid #2a2b4d; cursor: pointer; }
-        .user-item:hover { background: #32345e; }
-        .user-item.active { background: var(--primary-purple); }
-
+        .user-item.active { background: #6a11cb; }
         .modal-view { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:2000; flex-direction: column; }
     </style>
 </head>
@@ -40,7 +32,7 @@
         <div class="brand">
             <h1 style="font-size: 18px;"><i class="fa-solid fa-user-shield"></i> PicaDji ADMIN</h1>
         </div>
-        <div style="font-size: 11px; background: #2ecc71; padding: 2px 8px; border-radius: 10px;">SERVIDOR ONLINE</div>
+        <div id="server-status" style="font-size: 11px; background: #2ecc71; padding: 2px 8px; border-radius: 10px;">SERVIDOR ONLINE</div>
     </header>
 
     <nav class="task-tabs" style="background: #1a1b2e; position: sticky; top: 0; z-index: 100;">
@@ -52,23 +44,8 @@
 
     <div id="sec-depositos" class="admin-section active">
         <h3 style="margin-bottom: 15px;">Aprovação de Depósitos</h3>
-        <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                <div>
-                    <b>lavrentemambondo@gmail.com</b>
-                    <p style="color: #27ae60; font-weight: bold; font-size: 16px; margin: 5px 0;">+ 10.000 Kz</p>
-                    <small>Método: IBAN Atlântico | Data: 11/01/2026</small>
-                </div>
-                <span style="background: #f1c40f; padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold;">AGUARDANDO</span>
-            </div>
-            <div style="margin-top: 15px; display: flex; gap: 10px;">
-                <button class="btn-action" style="margin:0; padding: 8px; font-size: 11px; background: #555;" onclick="verComprovativo()">
-                    <i class="fa-solid fa-file-invoice"></i> Ver Comprovativo
-                </button>
-                <button class="btn-confirm" style="margin:0; padding: 8px; font-size: 11px; background: #27ae60;" onclick="aprovarTransacao(this, 'Depósito')">
-                    Autorizar Saldo
-                </button>
-            </div>
+        <div id="lista-depositos">
+            <p>Carregando depósitos...</p>
         </div>
     </div>
 
@@ -83,69 +60,47 @@
                     <th>Ações</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td><b>António Costa</b><br><small>id: 7721</small></td>
-                    <td style="color: #e74c3c; font-weight: bold;">5.500 Kz</td>
-                    <td><small>AO06 0040...9012<br>Banco BAI</small></td>
-                    <td>
-                        <button class="btn-confirm" style="padding: 5px; font-size: 10px; margin-bottom: 5px;" onclick="aprovarTransacao(this, 'Levantamento')">Pagar</button>
-                        <button class="btn-action" style="padding: 5px; font-size: 10px; background: #666;" onclick="rejeitar(this)">Recusar</button>
-                    </td>
-                </tr>
-            </tbody>
+            <tbody id="lista-saques">
+                </tbody>
         </table>
     </div>
 
     <div id="sec-suporte" class="admin-section">
         <div class="support-grid">
             <div class="user-list">
-                <div style="padding: 10px; font-size: 11px; opacity: 0.6; text-transform: uppercase;">Mensagens Recentes</div>
-                <div class="user-item active" onclick="abrirChat('João Silva', 'VIP 2')">
-                    <b>João Silva</b> <small style="color: #d4ff00;">(VIP 2)</small>
-                    <p style="font-size: 10px; opacity: 0.7;">Olá, como ativo...</p>
-                </div>
-                <div class="user-item" onclick="abrirChat('Maria Antónia', 'VIP 0')">
-                    <b>Maria Antónia</b>
-                    <p style="font-size: 10px; opacity: 0.7;">Depósito confirmado!</p>
-                </div>
+                <div class="user-item active">João Silva (Exemplo)</div>
             </div>
-            <div style="display: flex; flex-direction: column; color: #333;">
-                <div style="padding: 15px; border-bottom: 1px solid #eee; background: #fff; font-weight: bold;" id="chat-header">João Silva</div>
-                <div id="admin-chat-messages" style="flex-grow: 1; padding: 15px; overflow-y: auto; background: #f4f7f6;">
-                    <div class="mensagem recebida"><div class="conteudo">Olá Admin, fiz o depósito de 10.000 Kz agora. Pode verificar?</div></div>
+            <div style="display: flex; flex-direction: column;">
+                <div id="admin-chat-messages" style="flex-grow: 1; padding: 15px; overflow-y: auto; background: #f4f7f6; height: 300px;">
+                    <p style="text-align:center; font-size:12px; color:#888;">Selecione um chat para responder</p>
                 </div>
-                <div class="chat-input" style="background: #fff;">
-                    <input type="text" id="admin-reply" placeholder="Escreva para o usuário...">
-                    <button class="btn-send" onclick="enviarMensagemAdmin()"><i class="fa-solid fa-paper-plane"></i></button>
+                <div class="chat-input" style="background: #fff; display: flex; padding: 10px;">
+                    <input type="text" id="admin-reply" style="flex:1; padding: 10px;" placeholder="Escreva...">
+                    <button class="btn-send" onclick="enviarMensagemAdmin()">Enviar</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="sec-vips" class="admin-section">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-            <h3>Configurar Investimentos</h3>
-            <button class="btn-confirm" style="width: auto; padding: 5px 15px;" onclick="alert('Criar novo pacote...')">+ Novo VIP</button>
-        </div>
+        <h3>Configurar Pacotes de Investimento</h3>
         <div class="admin-card">
             <b>VIP 1 - Bronze</b>
             <p>Preço: 5.000 Kz | Retorno Diário: 500 Kz</p>
-            <button class="btn-action" style="margin-top: 10px; width: auto; padding: 5px 15px; background: var(--primary-purple);">Editar Valores</button>
+            <button class="btn-confirm">Editar Valores</button>
         </div>
     </div>
 </div>
 
 <div id="modal-comprovativo" class="modal-view" onclick="this.style.display='none'">
-    <p style="color: white; margin-bottom: 15px;">Comprovativo Enviado pelo Usuário</p>
-    <img src="https://via.placeholder.com/300x500?text=Comprovante+Bancario+Angola" style="max-width: 80%; border-radius: 10px; border: 3px solid white;">
-    <button class="btn-action" style="width: 200px; margin-top: 20px;">Fechar Visualização</button>
+    <p style="color: white; margin-bottom: 15px;">Comprovativo do Usuário</p>
+    <img src="" id="img-comprovativo" style="max-width: 80%; border-radius: 10px; border: 3px solid white;">
+    <button class="btn-action" style="width: 200px; margin-top: 20px;">Fechar</button>
 </div>
 
 <script>
     const API_URL = "https://warnermida-1.onrender.com";
 
-    // --- NAVEGAÇÃO ENTRE ABAS ---
     function tab(btn, id) {
         document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.task-tab-btn').forEach(b => b.classList.remove('active'));
@@ -156,57 +111,50 @@
         if(id === 'sec-levantamentos') carregarLevantamentos();
     }
 
-    // --- GESTÃO DE DEPÓSITOS (COMISSÕES AUTOMÁTICAS) ---
     async function carregarDepositos() {
-        const container = document.getElementById('sec-depositos');
+        const container = document.getElementById('lista-depositos');
         try {
             const res = await fetch(`${API_URL}/api/admin/depositos-pendentes`);
             const dados = await res.json();
-            
-            container.innerHTML = `<h3 style="margin-bottom: 15px;">Aprovação de Depósitos</h3>`;
-            if(dados.length === 0) container.innerHTML += "<p>Nenhum depósito pendente.</p>";
+            container.innerHTML = "";
+
+            if(dados.length === 0) container.innerHTML = "<p>Nenhum depósito pendente.</p>";
 
             dados.forEach(dep => {
                 container.innerHTML += `
-                    <div class="admin-card" id="card-dep-${dep.id}">
+                    <div class="admin-card">
                         <div style="display: flex; justify-content: space-between;">
                             <div>
-                                <b>${dep.usuario_email || 'Usuário ID: ' + dep.usuario_id}</b>
-                                <p style="color: #27ae60; font-weight: bold; font-size: 16px; margin: 5px 0;">+ ${dep.valor} Kz</p>
-                                <small>Data: ${new Date(dep.data).toLocaleDateString('pt-BR')}</small>
+                                <b>${dep.email || 'Usuário ID: ' + dep.usuario_id}</b>
+                                <p style="color: #27ae60; font-weight: bold; font-size: 16px;">+ ${dep.valor} Kz</p>
+                                <small>Data: ${new Date(dep.data).toLocaleDateString()}</small>
                             </div>
-                            <span style="background: #f1c40f; padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold;">AGUARDANDO</span>
+                            <span style="background: #f1c40f; padding: 4px 8px; border-radius: 5px; font-size: 10px;">AGUARDANDO</span>
                         </div>
                         <div style="margin-top: 15px; display: flex; gap: 10px;">
                             <button class="btn-action" style="background:#555" onclick="verComprovativo('${dep.comprovativo}')">Ver Foto</button>
-                            <button class="btn-confirm" style="background:#27ae60" onclick="processarPagamento('${dep.id}', 'aprovado')">Autorizar Saldo</button>
-                            <button class="btn-action" style="background:#e74c3c" onclick="processarPagamento('${dep.id}', 'rejeitado')">Recusar</button>
+                            <button class="btn-confirm" style="background:#27ae60" onclick="processarDep('${dep.id}', 'aprovado')">Aprovar</button>
+                            <button class="btn-action" style="background:#e74c3c" onclick="processarDep('${dep.id}', 'rejeitado')">Recusar</button>
                         </div>
                     </div>`;
             });
-        } catch(e) { console.error("Erro ao carregar depósitos"); }
+        } catch(e) { container.innerHTML = "Erro ao conectar com servidor."; }
     }
 
-    async function processarPagamento(id, status) {
-        if(!confirm(`Deseja ${status} este depósito?`)) return;
-        
+    async function processarDep(id, status) {
+        if(!confirm(`Deseja marcar como ${status}?`)) return;
         try {
             const res = await fetch(`${API_URL}/api/admin/processar-deposito`, {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ deposito_id: id, status: status })
             });
-
-            if(res.ok) {
-                alert(`Sucesso: Depósito ${status}!`);
-                carregarDepositos();
-            }
-        } catch(e) { alert("Erro na conexão"); }
+            if(res.ok) { alert("Sucesso!"); carregarDepositos(); }
+        } catch(e) { alert("Erro de conexão."); }
     }
 
-    // --- GESTÃO DE LEVANTAMENTOS (SAQUES) ---
     async function carregarLevantamentos() {
-        const tbody = document.querySelector('#sec-levantamentos tbody');
+        const tbody = document.getElementById('lista-saques');
         try {
             const res = await fetch(`${API_URL}/api/admin/saques-pendentes`);
             const saques = await res.json();
@@ -215,42 +163,41 @@
             saques.forEach(s => {
                 tbody.innerHTML += `
                     <tr>
-                        <td><b>${s.nome_titular}</b><br><small>ID: ${s.usuario_id}</small></td>
-                        <td style="color: #e74c3c; font-weight: bold;">${s.valor} Kz</td>
-                        <td><small>${s.iban}<br>${s.banco || 'Banco'}</small></td>
+                        <td><b>${s.nome_titular}</b></td>
+                        <td style="color:red;">${s.valor} Kz</td>
+                        <td>${s.iban}<br><small>${s.banco}</small></td>
                         <td>
-                            <button class="btn-confirm" onclick="processarSaque('${s.id}', 'pago')">Pagar</button>
-                            <button class="btn-action" style="background:#666" onclick="processarSaque('${s.id}', 'rejeitado')">Recusar</button>
+                            <button onclick="processarSaque('${s.id}', 'pago')" style="background:#27ae60; color:white; border:none; padding:5px; border-radius:5px;">Pagar</button>
+                            <button onclick="processarSaque('${s.id}', 'rejeitado')" style="background:#666; color:white; border:none; padding:5px; border-radius:5px;">Recusar</button>
                         </td>
                     </tr>`;
             });
-        } catch(e) { console.error("Erro ao carregar saques"); }
+        } catch(e) { }
     }
 
-    // --- VISUALIZAÇÃO DE COMPROVATIVO ---
+    async function processarSaque(id, status) {
+        if(!confirm(`Deseja ${status} este saque?`)) return;
+        try {
+            await fetch(`${API_URL}/api/admin/processar-saque`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ saque_id: id, status: status })
+            });
+            carregarLevantamentos();
+        } catch(e) { alert("Erro."); }
+    }
+
     function verComprovativo(url) {
         const modal = document.getElementById('modal-comprovativo');
-        modal.querySelector('img').src = url;
+        document.getElementById('img-comprovativo').src = url;
         modal.style.display = 'flex';
     }
 
-    // --- SUPORTE / CHAT ---
-    async function enviarMensagemAdmin() {
-        const input = document.getElementById('admin-reply');
-        const msg = input.value;
-        if(!msg) return;
-
-        // Aqui você enviaria para a rota de chat do seu servidor
-        const box = document.getElementById('admin-chat-messages');
-        box.innerHTML += `<div class="mensagem enviada"><div class="conteudo">${msg}</div></div>`;
-        input.value = "";
-        box.scrollTop = box.scrollHeight;
+    function enviarMensagemAdmin() {
+        alert("Função de chat será vinculada ao Firebase/Banco em breve.");
     }
 
-    // Inicialização
-    window.onload = () => {
-        carregarDepositos();
-    };
+    window.onload = carregarDepositos;
 </script>
 
 </body>
