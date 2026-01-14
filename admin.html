@@ -143,46 +143,114 @@
 </div>
 
 <script>
+    const API_URL = "https://warnermida-1.onrender.com";
+
+    // --- NAVEGAÇÃO ENTRE ABAS ---
     function tab(btn, id) {
         document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.task-tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         btn.classList.add('active');
+        
+        if(id === 'sec-depositos') carregarDepositos();
+        if(id === 'sec-levantamentos') carregarLevantamentos();
     }
 
-    function verComprovativo() {
-        document.getElementById('modal-comprovativo').style.display = 'flex';
+    // --- GESTÃO DE DEPÓSITOS (COMISSÕES AUTOMÁTICAS) ---
+    async function carregarDepositos() {
+        const container = document.getElementById('sec-depositos');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/depositos-pendentes`);
+            const dados = await res.json();
+            
+            container.innerHTML = `<h3 style="margin-bottom: 15px;">Aprovação de Depósitos</h3>`;
+            if(dados.length === 0) container.innerHTML += "<p>Nenhum depósito pendente.</p>";
+
+            dados.forEach(dep => {
+                container.innerHTML += `
+                    <div class="admin-card" id="card-dep-${dep.id}">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <b>${dep.usuario_email || 'Usuário ID: ' + dep.usuario_id}</b>
+                                <p style="color: #27ae60; font-weight: bold; font-size: 16px; margin: 5px 0;">+ ${dep.valor} Kz</p>
+                                <small>Data: ${new Date(dep.data).toLocaleDateString('pt-BR')}</small>
+                            </div>
+                            <span style="background: #f1c40f; padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: bold;">AGUARDANDO</span>
+                        </div>
+                        <div style="margin-top: 15px; display: flex; gap: 10px;">
+                            <button class="btn-action" style="background:#555" onclick="verComprovativo('${dep.comprovativo}')">Ver Foto</button>
+                            <button class="btn-confirm" style="background:#27ae60" onclick="processarPagamento('${dep.id}', 'aprovado')">Autorizar Saldo</button>
+                            <button class="btn-action" style="background:#e74c3c" onclick="processarPagamento('${dep.id}', 'rejeitado')">Recusar</button>
+                        </div>
+                    </div>`;
+            });
+        } catch(e) { console.error("Erro ao carregar depósitos"); }
     }
 
-    function aprovarTransacao(btn, tipo) {
-        if(confirm(`Deseja realmente autorizar este ${tipo}?`)) {
-            const container = btn.parentElement;
-            container.innerHTML = `<p style="color: #27ae60; font-weight: bold; font-size: 13px;">✅ ${tipo} Aprovado com Sucesso!</p>`;
-        }
+    async function processarPagamento(id, status) {
+        if(!confirm(`Deseja ${status} este depósito?`)) return;
+        
+        try {
+            const res = await fetch(`${API_URL}/api/admin/processar-deposito`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ deposito_id: id, status: status })
+            });
+
+            if(res.ok) {
+                alert(`Sucesso: Depósito ${status}!`);
+                carregarDepositos();
+            }
+        } catch(e) { alert("Erro na conexão"); }
     }
 
-    function rejeitar(btn) {
-        let motivo = prompt("Motivo da rejeição:");
-        if(motivo) {
-            btn.closest('tr').remove();
-            alert("Solicitação recusada e usuário notificado.");
-        }
+    // --- GESTÃO DE LEVANTAMENTOS (SAQUES) ---
+    async function carregarLevantamentos() {
+        const tbody = document.querySelector('#sec-levantamentos tbody');
+        try {
+            const res = await fetch(`${API_URL}/api/admin/saques-pendentes`);
+            const saques = await res.json();
+            tbody.innerHTML = "";
+
+            saques.forEach(s => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td><b>${s.nome_titular}</b><br><small>ID: ${s.usuario_id}</small></td>
+                        <td style="color: #e74c3c; font-weight: bold;">${s.valor} Kz</td>
+                        <td><small>${s.iban}<br>${s.banco || 'Banco'}</small></td>
+                        <td>
+                            <button class="btn-confirm" onclick="processarSaque('${s.id}', 'pago')">Pagar</button>
+                            <button class="btn-action" style="background:#666" onclick="processarSaque('${s.id}', 'rejeitado')">Recusar</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch(e) { console.error("Erro ao carregar saques"); }
     }
 
-    function abrirChat(nome, vip) {
-        document.getElementById('chat-header').innerText = `${nome} (${vip})`;
-        document.getElementById('admin-chat-messages').innerHTML = `<div class="mensagem recebida"><div class="conteudo">Olá suporte, sou ${nome}. Preciso de ajuda com meu saldo.</div></div>`;
+    // --- VISUALIZAÇÃO DE COMPROVATIVO ---
+    function verComprovativo(url) {
+        const modal = document.getElementById('modal-comprovativo');
+        modal.querySelector('img').src = url;
+        modal.style.display = 'flex';
     }
 
-    function enviarMensagemAdmin() {
+    // --- SUPORTE / CHAT ---
+    async function enviarMensagemAdmin() {
         const input = document.getElementById('admin-reply');
-        if(input.value) {
-            const box = document.getElementById('admin-chat-messages');
-            box.innerHTML += `<div class="mensagem enviada"><div class="conteudo">${input.value}</div></div>`;
-            input.value = "";
-            box.scrollTop = box.scrollHeight;
-        }
+        const msg = input.value;
+        if(!msg) return;
+
+        // Aqui você enviaria para a rota de chat do seu servidor
+        const box = document.getElementById('admin-chat-messages');
+        box.innerHTML += `<div class="mensagem enviada"><div class="conteudo">${msg}</div></div>`;
+        input.value = "";
+        box.scrollTop = box.scrollHeight;
     }
+
+    // Inicialização
+    window.onload = () => {
+        carregarDepositos();
+    };
 </script>
 
 </body>
