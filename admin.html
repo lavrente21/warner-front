@@ -85,15 +85,28 @@
 </div>
 
     <div id="sec-vips" class="admin-section">
-        <h3>Configurar Pacotes de Investimento</h3>
-        <div class="admin-card">
-            <b>VIP 1 - Bronze</b>
-            <p>Preço: 5.000 Kz | Retorno Diário: 500 Kz</p>
-            <button class="btn-confirm">Editar Valores</button>
+    <h3 style="margin-bottom: 15px;">Gerenciar Pacotes VIP</h3>
+    
+    <div class="admin-card" style="border-left-color: gold; background: #f9f9f9;">
+        <b id="form-vip-title">Adicionar/Editar Pacote</b>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
+            <input type="number" id="vip-nivel" placeholder="Nível (Ex: 1)">
+            <input type="text" id="vip-nome" placeholder="Nome (Ex: VIP 1 - Warner)">
+            <input type="number" id="vip-preco" placeholder="Preço de Ativação (Kz)">
+            <input type="number" id="vip-tarefas" placeholder="Qtd de Tarefas">
+            <input type="number" id="vip-ganho-tarefa" placeholder="Ganho por Tarefa (Kz)">
+            <input type="number" id="vip-ganho-total" placeholder="Ganho Total Mensal (Kz)">
         </div>
+        <button class="btn-confirm" onclick="salvarVip()" style="margin-top: 15px; width: 100%;">
+            <i class="fa-solid fa-save"></i> Salvar Plano VIP
+        </button>
+    </div>
+
+    <h4 style="margin: 20px 0 10px 0;">Pacotes Ativos</h4>
+    <div id="lista-vips-admin">
+        <p>Carregando pacotes...</p>
     </div>
 </div>
-
 <div id="modal-comprovativo" class="modal-view" onclick="this.style.display='none'">
     <p style="color: white; margin-bottom: 15px;">Comprovativo do Usuário</p>
     <img src="" id="img-comprovativo" style="max-width: 80%; border-radius: 10px; border: 3px solid white;">
@@ -179,7 +192,79 @@ const API_URL = "https://warnermida-1.onrender.com";
             });
         } catch(e) { }
     }
+// Carregar VIPs na abertura da aba
+const originalTab = tab;
+tab = function(btn, id) {
+    originalTab(btn, id);
+    if(id === 'sec-vips') carregarVipsAdmin();
+}
 
+async function carregarVipsAdmin() {
+    const container = document.getElementById('lista-vips-admin');
+    try {
+        const res = await fetch(`${API_URL}/api/vips`);
+        const vips = await res.json();
+        container.innerHTML = "";
+
+        vips.forEach(v => {
+            container.innerHTML += `
+                <div class="admin-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <b>${v.nome} (Nível ${v.nivel})</b>
+                            <p style="font-size: 11px; margin-top: 5px;">
+                                Preço: ${v.preco} Kz | Tarefas: ${v.qtd_tarefas} | 
+                                Ganho/T: ${v.ganho_por_tarefa} Kz | Total: <b>${v.ganho_total_mensal} Kz</b>
+                            </p>
+                        </div>
+                        <button onclick="preencherFormVip(${JSON.stringify(v).replace(/"/g, '&quot;')})" 
+                                style="background: #6a11cb; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+                            <i class="fa-solid fa-edit"></i>
+                        </button>
+                    </div>
+                </div>`;
+        });
+    } catch (e) { console.error("Erro ao carregar VIPs"); }
+}
+
+async function salvarVip() {
+    const dados = {
+        nivel: document.getElementById('vip-nivel').value,
+        nome: document.getElementById('vip-nome').value,
+        preco: document.getElementById('vip-preco').value,
+        qtd_tarefas: document.getElementById('vip-tarefas').value,
+        ganho_por_tarefa: document.getElementById('vip-ganho-tarefa').value,
+        ganho_total_mensal: document.getElementById('vip-ganho-total').value
+    };
+
+    if (!dados.nivel || !dados.nome || !dados.preco) return alert("Preencha os campos básicos!");
+
+    try {
+        const res = await fetch(`${API_URL}/api/admin/config-vip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            alert("✅ Plano VIP atualizado!");
+            carregarVipsAdmin();
+            // Limpar formulário
+            document.querySelectorAll('#sec-vips input').forEach(i => i.value = "");
+        }
+    } catch (e) { alert("Erro ao salvar VIP"); }
+}
+
+function preencherFormVip(v) {
+    document.getElementById('vip-nivel').value = v.nivel;
+    document.getElementById('vip-nome').value = v.nome;
+    document.getElementById('vip-preco').value = v.preco;
+    document.getElementById('vip-tarefas').value = v.qtd_tarefas;
+    document.getElementById('vip-ganho-tarefa').value = v.ganho_por_tarefa;
+    document.getElementById('vip-ganho-total').value = v.ganho_total_mensal;
+    document.getElementById('form-vip-title').innerText = "Editando Nível " + v.nivel;
+    window.scrollTo(0, 0);
+}
     async function processarSaque(id, status) {
         if(!confirm(`Deseja ${status} este saque?`)) return;
         try {
