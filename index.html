@@ -410,34 +410,41 @@ async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // O link montado com a sua API KEY
-    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=6ddcaf0e7771f9287e80b98076b2c9d0"; 
+    // Link oficial com a sua KEY fornecida
+    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=6dbdd9b368e7686dfc3750c91cdf2039"; 
 
-    // 1. Abre o anúncio imediatamente
+    toast("A abrir tarefa patrocinada...");
+
+    // 1. Tenta abrir o anúncio em nova aba
     const win = window.open(adURL, '_blank');
 
+    // 2. Se o navegador bloquear, avisa o usuário
     if (!win) {
-        toast("⚠️ Por favor, ative os Pop-ups para ganhar saldo!");
+        toast("⚠️ Por favor, permita Pop-ups para validar a tarefa!");
         return;
     }
 
-    toast("A carregar tarefa patrocinada...");
-
-    // 2. Valida o ganho após 3 segundos
+    // 3. Aguarda 3 segundos para o usuário ver o anúncio e valida no banco de dados
     setTimeout(async () => {
         try {
             const res = await fetch(`${API_URL}/api/completar-tarefa`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
+                body: JSON.stringify({ 
+                    usuario_id: user.id || user._id, 
+                    valor: val 
+                })
             });
             
             if(res.ok) {
                 toast(`✅ Tarefa Concluída! +${val} Kz`);
-                sincronizarDados();
+                sincronizarDados(); // Atualiza o saldo na tela do usuário
+            } else {
+                const errorData = await res.json();
+                toast("❌ Erro: " + (errorData.error || "Tente novamente"));
             }
         } catch(e) { 
-            toast("Erro ao conectar ao servidor");
+            toast("Erro de conexão com o servidor"); 
         }
     }, 3000);
 }
