@@ -496,15 +496,19 @@ showPage = function(id, el) {
 }
 
     // Função para o usuário enviar foto no chat de suporte
-async function enviarFotoSuporte(input) {
+async function enviarImagemSuporte(input) {
     if (!input.files || !input.files[0]) return;
 
-    toast("Processando imagem...");
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const user = JSON.parse(storageData);
+    const userId = user.id || user._id;
+
+    toast("Hospedando imagem...");
     const formData = new FormData();
     formData.append("image", input.files[0]);
 
     try {
-        // Envia para o ImgBB (seu servidor de fotos)
+        // 1. Envia para o ImgBB
         const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
             method: "POST",
             body: formData
@@ -514,14 +518,15 @@ async function enviarFotoSuporte(input) {
         if (dataImg.success) {
             const urlImagem = dataImg.data.url;
             
-            // Agora enviamos o link da imagem para o seu banco de dados
+            // 2. Envia a tag HTML da imagem como mensagem para o banco
             const resChat = await fetch(`${API_URL}/api/suporte/enviar`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    usuario_id: JSON.parse(localStorage.getItem('usuario')).id,
+                    usuario_id: userId,
                     enviado_por: 'usuario',
-                    mensagem: `IMAGEM_URL:${urlImagem}` // Usamos um prefixo para o Admin saber que é foto
+                    // Enviamos a tag IMG formatada para o chat exibir direto
+                    mensagem: `<img src="${urlImagem}" style="max-width:100%; border-radius:10px; display:block; margin:5px 0;">`
                 })
             });
 
@@ -532,6 +537,7 @@ async function enviarFotoSuporte(input) {
         }
     } catch (err) {
         toast("Erro ao enviar foto.");
+        console.error(err);
     }
 }
 // --- FUNÇÕES DE INTERAÇÃO ---
