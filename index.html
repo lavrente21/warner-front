@@ -1,90 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8"> 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Warner Media</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<div id="app">
-<header id="main-header" style="height: 60px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;">
-    <div class="brand" style="display: flex; align-items: center; height: 100%;">
-        <img src="logo.png" alt="Logo" style="height: 15px; width: auto; border-radius: 0; object-fit: contain;">
-    </div>
-    <div class="top-icons" style="display: flex; align-items: center;">
-        <i class="fa-solid fa-headset" onclick="showPage('pg-call-center')" style="margin-right: 10px; color: white; cursor: pointer;"></i>
-        <div class="lang-selector">
-            <select style="background: none; border: none; color: #fff; font-size: 11px;" onchange="changeLanguage(this.value)">
-                <option value="pt">Português</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-    </div>
-</header>
-
-<div id="pg-lar" class="view">
-    <div class="banner-placeholder" style="background: none;">
-        <img src="banner.gif" alt="Banner" style="width: 100%; height: 100%; border-radius: 15px; object-fit: cover;">
-    </div>
-<div class="grid-home">
-    <div class="grid-item" onclick="showPage('pg-recarga')">
-        <i class="fa-solid fa-building-columns"></i>
-        <span>Recarga</span>
-    </div>
-
-    <div class="grid-item" onclick="showPage('pg-retirar')">
-        <i class="fa-solid fa-hand-holding-dollar"></i>
-        <span>Retirar</span>
-    </div>
-
-    <div class="grid-item" onclick="showPage('pg-equipe')">
-        <i class="fa-solid fa-users"></i>
-        <span>Equipe</span>
-    </div>
-</div>
-<div class="task-card">
-    <div class="card-tag">VIP1</div>
-    <div class="card-main">
-        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
-        <div class="card-details">
-            <div><p class="c-label">Recompensa</p><p class="c-val">250 Kz</p></div>
-            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
-        </div>
-    </div>
-    <button class="btn-action" onclick="completeTask(250)">Ir para tarefa</button>
-</div>
-
-<div class="task-card">
-    <div class="card-tag">VIP2</div>
-    <div class="card-main">
-        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
-        <div class="card-details">
-            <div><p class="c-label">Recompensa</p><p class="c-val">500 Kz</p></div>
-            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
-        </div>
-    </div>
-    <button class="btn-action" onclick="completeTask(500)">Ir para tarefa</button>
-</div>
-
-<div class="task-card">
-    <div class="card-tag">VIP3</div>
-    <div class="card-main">
-        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
-        <div class="card-details">
-            <div><p class="c-label">Recompensa</p><p class="c-val">1000 Kz</p></div>
-            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
-        </div>
-    </div>
-    <button class="btn-action" onclick="completeTask(1000)">Ir para tarefa</button>
-</div>
-</div>
-
-
-<div id="pg-tarefa" class="view hidden">
     <div class="task-tabs">
         <button class="task-tab-btn active" onclick="showTarefas('nao-concluidas')">Não concluído</button>
         <button class="task-tab-btn" onclick="showTarefas('concluidas')">Concluído</button>
@@ -405,7 +318,6 @@ function showTarefas(aba) {
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
-async function completeTask(val, buttonEl) {
 async function completeTask(val, buttonEl) {
     if (!buttonEl) return;
 
