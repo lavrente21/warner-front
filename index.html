@@ -599,10 +599,8 @@ function copiarLink() {
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
 
-    // Confirmação simples
-    if (!confirm(`Deseja desbloquear o VIP ${nivel} por ${preco} Kz?`)) return;
-
-    toast("Processando compra...");
+    // Removemos o confirm() e usamos apenas o toast de processamento
+    toast("Processando ativação do VIP...");
 
     try {
         const res = await fetch(`${API_URL}/api/comprar-vip`, {
@@ -615,21 +613,24 @@ function copiarLink() {
             })
         });
 
+        // Verifica se o servidor retornou HTML (erro 404/500) em vez de JSON
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            return toast("❌ Erro: Servidor em manutenção (404)");
+        }
+
         const data = await res.json();
 
         if (!res.ok) {
-            // Aqui ele vai mostrar "Saldo insuficiente" se o usuário for pobre
             return toast("❌ " + (data.error || "Erro na compra"));
         }
 
-        toast(`✅ Parabéns! Você agora é VIP ${nivel}`);
-        
-        // Atualiza os dados na tela (saldo e nível)
+        toast(`✅ VIP ${nivel} Ativado com sucesso!`);
         sincronizarDados(); 
-        
+
     } catch (err) {
-        toast("❌ Erro ao conectar ao servidor.");
-        console.error(err);
+        toast("❌ Falha na conexão com o servidor.");
+        console.error("Erro técnico:", err);
     }
 }
 
