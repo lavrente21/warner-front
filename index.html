@@ -406,32 +406,39 @@ function showTarefas(aba) {
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
 async function completeTask(val, buttonEl) {
+    // Verifica se o botão existe para evitar o erro de 'undefined'
+    if (!buttonEl) {
+        console.error("Erro: O botão não foi passado para a função.");
+        return;
+    }
+
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // 1. Injeta o seu script de Popunder
+    // 1. Injeta o seu script de Popunder da Adsterra
     const s = document.createElement('script');
     s.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
     document.body.appendChild(s);
 
-    // 2. Transforma o botão num estado de "Aguardando Clique"
-    buttonEl.innerText = "CLIQUE AQUI PARA ABRIR";
-    buttonEl.style.background = "#e67e22"; // Laranja para chamar atenção
-    
-    // 3. Define o que acontece no próximo clique (O clique que vai disparar o Popunder)
-    buttonEl.onclick = () => {
-        toast("A abrir aba de tarefa...");
+    // 2. Prepara o botão para o clique que dispara o Popunder
+    const originalText = buttonEl.innerText;
+    buttonEl.innerText = "CLIQUE PARA ABRIR ANÚNCIO";
+    buttonEl.style.background = "#e67e22"; // Cor laranja
+
+    // 3. O usuário clica e o Popunder abre
+    buttonEl.onclick = async () => {
+        toast("A abrir tarefa... não feche a nova aba!");
         
-        // Esconde o botão atual e mostra um de "Validar" após 5 segundos
         buttonEl.innerText = "⏳ Verificando em 5s...";
         buttonEl.disabled = true;
 
-        setTimeout(() => {
-            buttonEl.innerText = "CONFIRMAR E RECEBER";
+        // Aguarda 5 segundos (tempo para o popunder carregar)
+        setTimeout(async () => {
+            buttonEl.innerText = "CONFIRMAR GANHO";
             buttonEl.disabled = false;
             buttonEl.style.background = "#27ae60"; // Verde
 
-            // Clique final para salvar no banco de dados
+            // Clique final para salvar o saldo no banco de dados
             buttonEl.onclick = async () => {
                 try {
                     const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -443,13 +450,13 @@ async function completeTask(val, buttonEl) {
                     if (res.ok) {
                         toast(`✅ +${val} Kz adicionados!`);
                         sincronizarDados();
-                        buttonEl.innerText = "TAREFA CONCLUÍDA";
+                        buttonEl.innerText = "CONCLUÍDO";
                         buttonEl.disabled = true;
                         buttonEl.style.background = "#ccc";
-                        s.remove(); // Remove o script para não incomodar mais
+                        if(s) s.remove(); 
                     }
                 } catch (e) {
-                    toast("Erro ao processar. Tente novamente.");
+                    toast("Erro de conexão. Tente novamente.");
                 }
             };
         }, 5000);
