@@ -406,39 +406,37 @@ function showTarefas(aba) {
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
 async function completeTask(val, buttonEl) {
-    // Verifica se o botão existe para evitar o erro de 'undefined'
-    if (!buttonEl) {
-        console.error("Erro: O botão não foi passado para a função.");
-        return;
-    }
+    if (!buttonEl) return;
 
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // 1. Injeta o seu script de Popunder da Adsterra
-    const s = document.createElement('script');
-    s.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
-    document.body.appendChild(s);
+    // 1. Link Direto do seu anúncio (Isso abre mais fácil que o script)
+    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=6dbdd9b368e7686dfc3750c91cdf2039";
 
-    // 2. Prepara o botão para o clique que dispara o Popunder
-    const originalText = buttonEl.innerText;
-    buttonEl.innerText = "CLIQUE PARA ABRIR ANÚNCIO";
-    buttonEl.style.background = "#e67e22"; // Cor laranja
+    // 2. Muda o texto para forçar o clique de abertura
+    buttonEl.innerText = "ABRIR TAREFA AGORA";
+    buttonEl.style.background = "#e67e22";
 
-    // 3. O usuário clica e o Popunder abre
-    buttonEl.onclick = async () => {
-        toast("A abrir tarefa... não feche a nova aba!");
+    // 3. Define a ação do clique
+    buttonEl.onclick = () => {
+        const win = window.open(adURL, '_blank');
         
-        buttonEl.innerText = "⏳ Verificando em 5s...";
+        if (!win) {
+            toast("⚠️ Ative os Pop-ups para ganhar!");
+            return;
+        }
+
+        toast("Aguarde 5 segundos na página do anúncio...");
+        buttonEl.innerText = "⏳ Verificando...";
         buttonEl.disabled = true;
 
-        // Aguarda 5 segundos (tempo para o popunder carregar)
-        setTimeout(async () => {
-            buttonEl.innerText = "CONFIRMAR GANHO";
+        // 4. Libera a conclusão após 5 segundos
+        setTimeout(() => {
+            buttonEl.innerText = "CONFIRMAR E RECEBER";
             buttonEl.disabled = false;
-            buttonEl.style.background = "#27ae60"; // Verde
+            buttonEl.style.background = "#27ae60";
 
-            // Clique final para salvar o saldo no banco de dados
             buttonEl.onclick = async () => {
                 try {
                     const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -448,15 +446,14 @@ async function completeTask(val, buttonEl) {
                     });
 
                     if (res.ok) {
-                        toast(`✅ +${val} Kz adicionados!`);
+                        toast(`✅ +${val} Kz creditados!`);
                         sincronizarDados();
                         buttonEl.innerText = "CONCLUÍDO";
                         buttonEl.disabled = true;
                         buttonEl.style.background = "#ccc";
-                        if(s) s.remove(); 
                     }
                 } catch (e) {
-                    toast("Erro de conexão. Tente novamente.");
+                    toast("Erro de conexão.");
                 }
             };
         }, 5000);
