@@ -463,7 +463,7 @@ async function carregarHistoricoSuporte() {
     const user = JSON.parse(storageData);
 
     if (!valor || valor < 5000) return toast("O valor mínimo é 5.000 Kz");
-    if (iban.length < 10) return toast("Insira um IBAN válido");
+    if (iban.length = 21) return toast("Insira um IBAN válido");
     if (!titular) return toast("Insira o nome do titular");
     if (!senha) return toast("Insira sua senha");
 
