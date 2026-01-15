@@ -196,9 +196,9 @@
     </div>
 
     <div class="meu-user-stripe">
-        <span id="user-name">Carregando...</span>
-        <span style="background:var(--accent-green); color:#000; padding:2px 10px; border-radius:15px; font-weight:bold;">VIP 0</span>
-    </div>
+    <span id="user-name">Carregando...</span>
+    <span id="user-vip" style="background:var(--accent-green); color:#000; padding:2px 10px; border-radius:15px; font-weight:bold;">VIP 0</span>
+</div>
 
     <div class="meu-menu-white">
         <div class="meu-menu-row" onclick="showPage('pg-recarga')"><span>Recarregar</span> <i class="fa-solid fa-chevron-right"></i></div>
@@ -384,39 +384,34 @@ async function sincronizarDados() {
         const user = JSON.parse(storageData);
         const userId = user.id || user._id;
 
-        // 1. Atualiza dados do usuário (Saldo e Nome)
         const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (resUser.ok) {
             const dadosNovos = await resUser.json();
-            // Mantém o objeto atualizado no storage
             localStorage.setItem('usuario', JSON.stringify(dadosNovos));
             
-            // Atualiza elementos na tela (se existirem)
+            // ATUALIZA OS ELEMENTOS NA TELA
             const bal = document.getElementById('user-balance');
             const nom = document.getElementById('user-name');
+            const vip = document.getElementById('user-vip'); // Pega o elemento do VIP
+
             if(bal) bal.innerText = `${dadosNovos.saldo} Kz`;
             if(nom) nom.innerText = dadosNovos.nome;
             
-            // ATUALIZA O LINK DE CONVITE
+            // ATUALIZA O NÍVEL VIP NA TELA
+            if(vip) {
+                // Se no banco o nível for 1, aparece "VIP 1", se não tiver nada, "VIP 0"
+                vip.innerText = `VIP ${dadosNovos.nivel_vip || 0}`;
+            }
+
+            // Link de convite...
             const linkEl = document.getElementById('link-convite');
             if (linkEl && dadosNovos.referral_id) {
                 linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
             }
-
-            // 2. BUSCA DADOS DA EQUIPE
-            if(dadosNovos.referral_id) {
-                const resEquipe = await fetch(`${API_URL}/api/equipe/${dadosNovos.referral_id}`);
-                if (resEquipe.ok) {
-                    const equipe = await resEquipe.json();
-                    const sizeEl = document.getElementById('team-size-val');
-                    const bonusEl = document.getElementById('team-bonus-val');
-                    if(sizeEl) sizeEl.innerText = equipe.teamCount;
-                    if(bonusEl) bonusEl.innerText = equipe.teamBonus + " Kz";
-                }
-            }
+            // ... resto do código da equipe
         }
     } catch (err) {
-        console.warn("Sincronização pendente ou erro de rede.");
+        console.warn("Erro ao sincronizar dados do perfil.");
     }
 }
 // --- SISTEMA DE SUPORTE REAL ---
