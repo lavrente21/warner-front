@@ -410,15 +410,19 @@ async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // Injeta o script do anúncio dinamicamente
-    const s = document.createElement('script');
-    s.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
-    document.body.appendChild(s);
+    // SUBSTITUA PELO SEU LINK DIRETO DA ADSTERRA
+    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=SEU_CODIGO_REAL_AQUI"; 
 
-    toast("Aguarde... Clique na tela para ver o anúncio!");
+    toast("A abrir tarefa patrocinada...");
 
-    // O anúncio da Adsterra (Popunder) abrirá no PRÓXIMO clique que o usuário der no site.
-    // Enquanto isso, validamos a tarefa no servidor.
+    // 1. Abre o anúncio em uma nova aba imediatamente
+    const win = window.open(adURL, '_blank');
+
+    if (!win) {
+        return toast("⚠️ Por favor, permita pop-ups para ganhar!");
+    }
+
+    // 2. Aguarda 3 segundos (para o usuário ver que abriu algo) e valida o saldo
     setTimeout(async () => {
         try {
             const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -430,12 +434,13 @@ async function completeTask(val) {
             if(res.ok) {
                 toast('Tarefa Concluída! +' + val + ' Kz');
                 sincronizarDados();
-                s.remove(); // Limpa o script após o uso
+            } else {
+                toast("Erro ao validar tarefa.");
             }
         } catch(e) { 
-            console.error("Erro ao salvar tarefa"); 
+            console.error("Erro no servidor"); 
         }
-    }, 1500);
+    }, 10000);
 }
 // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
