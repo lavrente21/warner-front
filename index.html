@@ -453,7 +453,7 @@ async function carregarHistoricoSuporte() {
         console.error("Erro ao carregar chat");
     }
 }
-   async function confirmarRetirada() {
+ async function confirmarRetirada() {
     const valor = document.getElementById('valor-retirada').value;
     const iban = document.getElementById('iban-retirada').value;
     const titular = document.getElementById('nome-retirada').value;
@@ -462,44 +462,47 @@ async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     const user = JSON.parse(storageData);
 
-    if (!valor || valor < 5000) return toast("O valor mínimo é 5.000 Kz");
-    if (iban.length = 21) return toast("Insira um IBAN válido");
-    if (!titular) return toast("Insira o nome do titular");
-    if (!senha) return toast("Insira sua senha");
+    // Validações básicas no front-end
+    if (!valor || valor < 5000) return toast("❌ O valor mínimo é 5.000 Kz");
+    if (iban.length < 10) return toast("❌ Insira um IBAN válido");
+    if (!titular) return toast("❌ Insira o nome do titular");
+    if (!senha) return toast("❌ Insira sua senha");
 
     toast("Processando pedido...");
 
- // --- DENTRO DA FUNÇÃO confirmarRetirada ---
-try {
-    const res = await fetch(`${API_URL}/api/levantamento`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            usuario_id: user.id || user._id,
-            valor: parseFloat(valor),
-            iban: iban,
-            nome_titular: titular,
-            senha: senha
-        })
-    });
+    try {
+        const res = await fetch(`${API_URL}/api/levantamento`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuario_id: user.id || user._id,
+                valor: parseFloat(valor),
+                iban: iban,
+                nome_titular: titular,
+                senha: senha
+            })
+        });
 
-    const data = await res.json(); // Tenta ler o JSON primeiro
+        // IMPORTANTE: Aqui pegamos a resposta do servidor (mesmo que seja erro)
+        const data = await res.json();
 
-    if (!res.ok) {
-        // Se o servidor respondeu 400 ou 401, o "data" terá o erro (ex: Saldo insuficiente)
-        return toast("❌ " + (data.error || "Erro ao processar"));
+        if (!res.ok) {
+            // Se o servidor retornar 400 (Saldo insuficiente), ele cai aqui
+            // E mostra exatamente a mensagem "Saldo insuficiente" no toast
+            return toast("❌ " + (data.error || "Erro ao processar"));
+        }
+
+        // Se deu tudo certo (Res 200/201)
+        toast("✅ Pedido de levantamento enviado!");
+        document.getElementById('valor-retirada').value = "";
+        sincronizarDados();
+        setTimeout(() => showPage('pg-lar'), 2000);
+
+    } catch (err) {
+        toast("❌ Erro de conexão com o servidor.");
+        console.error("Erro completo:", err);
     }
-
-    toast("✅ Pedido de levantamento enviado!");
-    document.getElementById('valor-retirada').value = "";
-    sincronizarDados();
-    setTimeout(() => showPage('pg-lar'), 2000);
-
-} catch (err) {
-    toast("Erro de conexão com o servidor.");
-    console.error("Erro completo:", err);
 }
-
 async function enviarMensagemSuporte() {
     const input = document.getElementById('mensagem-suporte');
     const msg = input.value.trim();
