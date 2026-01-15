@@ -453,7 +453,7 @@ async function carregarHistoricoSuporte() {
         console.error("Erro ao carregar chat");
     }
 }
-    async function confirmarRetirada() {
+   async function confirmarRetirada() {
     const valor = document.getElementById('valor-retirada').value;
     const iban = document.getElementById('iban-retirada').value;
     const titular = document.getElementById('nome-retirada').value;
@@ -462,11 +462,10 @@ async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     const user = JSON.parse(storageData);
 
-    // Validações básicas no cliente
     if (!valor || valor < 5000) return toast("O valor mínimo é 5.000 Kz");
     if (iban.length < 10) return toast("Insira um IBAN válido");
-    if (!titular) return toast("Insira o nome do titular da conta");
-    if (!senha) return toast("Insira sua senha de segurança");
+    if (!titular) return toast("Insira o nome do titular");
+    if (!senha) return toast("Insira sua senha");
 
     toast("Processando pedido...");
 
@@ -479,30 +478,26 @@ async function carregarHistoricoSuporte() {
                 valor: parseFloat(valor),
                 iban: iban,
                 nome_titular: titular,
-                senha: senha // Opcional: seu servidor deve validar se a senha está correta
+                senha: senha
             })
         });
 
-        const data = await res.json();
-
-        if (res.ok) {
-            toast("✅ Pedido de levantamento enviado!");
-            // Limpar campos
-            document.getElementById('valor-retirada').value = "";
-            document.getElementById('iban-retirada').value = "";
-            
-            // Atualiza o saldo na tela imediatamente
-            sincronizarDados();
-            
-            // Volta para a página principal após 2 segundos
-            setTimeout(() => showPage('pg-lar'), 2000);
-        } else {
-            // Exibe erro do servidor (ex: "Saldo insuficiente")
-            toast("❌ " + (data.error || "Erro ao processar"));
+        // VERIFICAÇÃO DE ERRO 404 OU 500
+        if (!res.ok) {
+            const textoErro = await res.text(); // Lê como texto para não dar SyntaxError
+            console.error("Erro do servidor:", textoErro);
+            return toast("Erro: Rota não encontrada no servidor (404).");
         }
+
+        const data = await res.json();
+        toast("✅ Pedido de levantamento enviado!");
+        document.getElementById('valor-retirada').value = "";
+        sincronizarDados();
+        setTimeout(() => showPage('pg-lar'), 2000);
+
     } catch (err) {
-        toast("Erro de conexão com o servidor.");
-        console.error(err);
+        toast("Erro de conexão. Verifique a URL do API_URL.");
+        console.error("Erro completo:", err);
     }
 }
 
