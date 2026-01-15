@@ -406,37 +406,55 @@ function showTarefas(aba) {
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
-async function completeTask(val) {
+async function completeTask(val, buttonEl) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    toast("A carregar tarefa... Clique em qualquer lugar para validar!");
-
-    // 1. Injeta o Script de Popunder dinamicamente
-    // Este script fará com que o PRÓXIMO CLIQUE do usuário abra o anúncio
+    // 1. Injeta o seu script de Popunder
     const s = document.createElement('script');
     s.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
     document.body.appendChild(s);
 
-    // 2. Processa o pagamento no banco de dados
-    // Damos um tempo maior (4 segundos) para o usuário clicar e o popunder abrir
-    setTimeout(async () => {
-        try {
-            const res = await fetch(`${API_URL}/api/completar-tarefa`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
-            });
-            
-            if(res.ok) {
-                toast(`✅ Sucesso! +${val} Kz`);
-                sincronizarDados();
-                s.remove(); // Limpa o script para não abrir anúncios extras depois
-            }
-        } catch(e) { 
-            console.error("Erro ao salvar tarefa"); 
-        }
-    }, 4000); 
+    // 2. Transforma o botão num estado de "Aguardando Clique"
+    buttonEl.innerText = "CLIQUE AQUI PARA ABRIR";
+    buttonEl.style.background = "#e67e22"; // Laranja para chamar atenção
+    
+    // 3. Define o que acontece no próximo clique (O clique que vai disparar o Popunder)
+    buttonEl.onclick = () => {
+        toast("A abrir aba de tarefa...");
+        
+        // Esconde o botão atual e mostra um de "Validar" após 5 segundos
+        buttonEl.innerText = "⏳ Verificando em 5s...";
+        buttonEl.disabled = true;
+
+        setTimeout(() => {
+            buttonEl.innerText = "CONFIRMAR E RECEBER";
+            buttonEl.disabled = false;
+            buttonEl.style.background = "#27ae60"; // Verde
+
+            // Clique final para salvar no banco de dados
+            buttonEl.onclick = async () => {
+                try {
+                    const res = await fetch(`${API_URL}/api/completar-tarefa`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
+                    });
+
+                    if (res.ok) {
+                        toast(`✅ +${val} Kz adicionados!`);
+                        sincronizarDados();
+                        buttonEl.innerText = "TAREFA CONCLUÍDA";
+                        buttonEl.disabled = true;
+                        buttonEl.style.background = "#ccc";
+                        s.remove(); // Remove o script para não incomodar mais
+                    }
+                } catch (e) {
+                    toast("Erro ao processar. Tente novamente.");
+                }
+            };
+        }, 5000);
+    };
 }
         
         // --- SUPORTE E IMAGENS ---
