@@ -410,19 +410,20 @@ async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // SUBSTITUA PELO SEU LINK DIRETO DA ADSTERRA
-    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=SEU_CODIGO_REAL_AQUI"; 
+    // O link montado com a sua API KEY
+    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=6ddcaf0e7771f9287e80b98076b2c9d0"; 
 
-    toast("A abrir tarefa patrocinada...");
-
-    // 1. Abre o anúncio em uma nova aba imediatamente
+    // 1. Abre o anúncio imediatamente
     const win = window.open(adURL, '_blank');
 
     if (!win) {
-        return toast("⚠️ Por favor, permita pop-ups para ganhar!");
+        toast("⚠️ Por favor, ative os Pop-ups para ganhar saldo!");
+        return;
     }
 
-    // 2. Aguarda 3 segundos (para o usuário ver que abriu algo) e valida o saldo
+    toast("A carregar tarefa patrocinada...");
+
+    // 2. Valida o ganho após 3 segundos
     setTimeout(async () => {
         try {
             const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -432,15 +433,13 @@ async function completeTask(val) {
             });
             
             if(res.ok) {
-                toast('Tarefa Concluída! +' + val + ' Kz');
+                toast(`✅ Tarefa Concluída! +${val} Kz`);
                 sincronizarDados();
-            } else {
-                toast("Erro ao validar tarefa.");
             }
         } catch(e) { 
-            console.error("Erro no servidor"); 
+            toast("Erro ao conectar ao servidor");
         }
-    }, 10000);
+    }, 3000);
 }
 // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
