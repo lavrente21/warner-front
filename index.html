@@ -114,12 +114,18 @@
             <div class="chat-messages" id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
                 <p style="text-align: center; color: #888; font-size: 11px;">Olá! Como podemos ajudar hoje?</p>
             </div>
-            <div class="chat-input" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #eee;">
-                <input type="text" id="mensagem-suporte" placeholder="Digite sua mensagem..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
-                <button onclick="enviarMensagemSuporte()" style="background: #6a3ab2; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </button>
-            </div>
+          <div class="chat-input" style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <input type="text" id="mensagem-suporte" placeholder="Mensagem..." style="flex: 1; padding: 10px; border-radius: 8px;">
+    
+    <label for="suporte-img" style="background: #555; color: white; padding: 10px; border-radius: 8px; cursor: pointer;">
+        <i class="fa-solid fa-camera"></i>
+    </label>
+    <input type="file" id="suporte-img" accept="image/*" style="display: none;" onchange="enviarImagemSuporte(this)">
+    
+    <button class="btn-send" onclick="enviarMensagemSuporte()" style="background: #6a3ab2; color: white; border: none; padding: 10px 15px; border-radius: 8px;">
+        <i class="fa-solid fa-paper-plane"></i>
+    </button>
+</div>
         </div>
     </div>
 </div>
