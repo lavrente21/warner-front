@@ -494,6 +494,46 @@ showPage = function(id, el) {
         clearInterval(window.chatInterval);
     }
 }
+
+    // Função para o usuário enviar foto no chat de suporte
+async function enviarFotoSuporte(input) {
+    if (!input.files || !input.files[0]) return;
+
+    toast("Processando imagem...");
+    const formData = new FormData();
+    formData.append("image", input.files[0]);
+
+    try {
+        // Envia para o ImgBB (seu servidor de fotos)
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+            method: "POST",
+            body: formData
+        });
+        const dataImg = await resImg.json();
+
+        if (dataImg.success) {
+            const urlImagem = dataImg.data.url;
+            
+            // Agora enviamos o link da imagem para o seu banco de dados
+            const resChat = await fetch(`${API_URL}/api/suporte/enviar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    usuario_id: JSON.parse(localStorage.getItem('usuario')).id,
+                    enviado_por: 'usuario',
+                    mensagem: `IMAGEM_URL:${urlImagem}` // Usamos um prefixo para o Admin saber que é foto
+                })
+            });
+
+            if (resChat.ok) {
+                toast("Foto enviada!");
+                carregarHistoricoSuporte();
+            }
+        }
+    } catch (err) {
+        toast("Erro ao enviar foto.");
+    }
+}
 // --- FUNÇÕES DE INTERAÇÃO ---
 function copiarLink() {
     const linkEl = document.getElementById('link-convite');
