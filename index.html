@@ -411,19 +411,19 @@ async function completeTask(val, buttonEl) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // 1. Link Direto do seu anúncio (Isso abre mais fácil que o script)
+    // O link direto da sua conta Adsterra
     const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=6dbdd9b368e7686dfc3750c91cdf2039";
 
-    // 2. Muda o texto para forçar o clique de abertura
-    buttonEl.innerText = "ABRIR TAREFA AGORA";
-    buttonEl.style.background = "#e67e22";
+    // PRIMEIRO CLIQUE: Prepara o botão para a ação direta
+    buttonEl.innerText = "CLIQUE PARA ABRIR ANÚNCIO";
+    buttonEl.style.background = "#e67e22"; 
 
-    // 3. Define a ação do clique
     buttonEl.onclick = () => {
+        // ABRIR DIRETAMENTE (O navegador permite porque é um clique real)
         const win = window.open(adURL, '_blank');
         
         if (!win) {
-            toast("⚠️ Ative os Pop-ups para ganhar!");
+            toast("⚠️ Bloqueado! Permita pop-ups no seu navegador.");
             return;
         }
 
@@ -431,7 +431,7 @@ async function completeTask(val, buttonEl) {
         buttonEl.innerText = "⏳ Verificando...";
         buttonEl.disabled = true;
 
-        // 4. Libera a conclusão após 5 segundos
+        // Após 5 segundos, libera o botão de confirmar ganho
         setTimeout(() => {
             buttonEl.innerText = "CONFIRMAR E RECEBER";
             buttonEl.disabled = false;
