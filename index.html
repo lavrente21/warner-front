@@ -405,16 +405,28 @@ function showTarefas(aba) {
 }
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
+// --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
 async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    const scriptPop = document.createElement('script');
-    scriptPop.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
-    document.body.appendChild(scriptPop);
+    // 1. Defina o seu link direto da Adsterra aqui
+    // IMPORTANTE: Use o "Direct Link" que você pega no painel da Adsterra
+    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=seu_codigo_aqui"; 
 
-    toast("A abrir tarefa patrocinada...");
+    // 2. Tenta abrir o anúncio em uma nova aba imediatamente
+    // O navegador permite window.open se estiver DIRETAMENTE ligado ao clique do botão
+    const adWindow = window.open(adURL, '_blank');
 
+    // 3. Verifica se o navegador bloqueou o pop-up
+    if (!adWindow || adWindow.closed || typeof adWindow.closed === 'undefined') {
+        toast("⚠️ Por favor, ative os Pop-ups para ganhar!");
+        return; // Para a execução se não abrir o anúncio
+    }
+
+    toast("Aguarde, Nova Aba...");
+
+    // 4. Processa o pagamento no banco de dados após um pequeno delay
     setTimeout(async () => {
         try {
             const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -422,6 +434,7 @@ async function completeTask(val) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
             });
+            
             if(res.ok) {
                 toast('Tarefa Concluída! +' + val + ' Kz');
                 sincronizarDados();
@@ -429,10 +442,11 @@ async function completeTask(val) {
                 const err = await res.json();
                 toast("❌ " + (err.error || "Erro na tarefa"));
             }
-        } catch(e) { toast("Erro ao salvar tarefa"); }
-    }, 500);
+        } catch(e) { 
+            toast("Erro ao salvar tarefa"); 
+        }
+    }, 2000); // 2 segundos de delay
 }
-
 // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
     if (!input.files || !input.files[0]) return;
