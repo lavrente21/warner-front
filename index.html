@@ -175,19 +175,13 @@
 </div>
 
 <div id="pg-vip" class="view hidden">
-<div class="vip-card">
-    <div class="card-tag">VIP1</div>
-    <div class="card-main">
-        <div class="card-img" style="background:var(--primary-purple)"><i class="fa-solid fa-gem"></i></div>
-        <div class="card-details">
-            <div><p class="c-label">Preço</p><p class="c-val">5.000 Kz</p></div>
-            <div><p class="c-label">Diário</p><p class="c-val">500 Kz</p></div>
-        </div>
+    <h2 style="text-align:center; color:white; margin:20px 0; font-size: 18px;">Planos VIP</h2>
+    <div id="container-vips-lista">
+        <p style="text-align:center; color:gray;">Carregando planos...</p>
     </div>
-    <button class="btn-action" onclick="comprarVIP(1, 5000)">Desbloquear</button>
-</div>
 </div>
 
+    
 <div id="pg-meu" class="view hidden">
     <div class="meu-balance-area">
         <p style="font-size:12px; opacity:0.8;">Balanço Total</p>
@@ -679,6 +673,61 @@ async function finalizarDeposito() {
             toast("Erro ao carregar imagem.");
         }
     } catch (err) { toast("Erro de conexão."); }
+}
+
+    async function carregarPlanosVIP() {
+    try {
+        const res = await fetch(`${API_URL}/api/vips`);
+        const planos = await res.json();
+        const container = document.getElementById('container-vips-lista');
+        
+        if(!container) return;
+        container.innerHTML = ""; // Limpa o "Carregando..."
+
+        planos.forEach(p => {
+            container.innerHTML += `
+                <div class="vip-card" style="margin-bottom: 20px;">
+                    <div class="card-tag" style="background: gold; color: black;">${p.nome}</div>
+                    <div class="card-main" style="flex-direction: column; align-items: flex-start; padding: 15px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+                            <span style="color: #eee; font-size: 13px;">Preço de Ativação:</span>
+                            <b style="color: #fff;">${p.preco} Kz</b>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; font-size: 12px;">
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
+                                <p style="opacity: 0.7;">Nível</p>
+                                <b>Nível ${p.nivel}</b>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
+                                <p style="opacity: 0.7;">Tarefas</p>
+                                <b>${p.qtd_tarefas} Diárias</b>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
+                                <p style="opacity: 0.7;">Ganho/Tarefa</p>
+                                <b style="color: #00ff00;">${p.ganho_por_tarefa} Kz</b>
+                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
+                                <p style="opacity: 0.7;">Renda Mensal</p>
+                                <b style="color: gold;">${p.ganho_total_mensal} Kz</b>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0 0 12px 12px;">
+                        Desbloquear Agora
+                    </button>
+                </div>
+            `;
+        });
+    } catch (err) {
+        console.error("Erro ao carregar VIPs:", err);
+    }
+}
+
+// ATUALIZE sua função showPage existente para chamar o carregamento:
+const originalShowPageVip = showPage;
+showPage = function(id, el) {
+    if (typeof originalShowPageVip === 'function') originalShowPageVip(id, el);
+    if (id === 'pg-vip') carregarPlanosVIP();
 }
 
 async function completeTask(val) {
