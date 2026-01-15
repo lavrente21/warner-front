@@ -350,28 +350,22 @@
 const API_URL = "https://warnermida-1.onrender.com";
 const IMGBB_KEY = "f1cbde38d1820926fd47faeb3e74975f";
 
-// --- GESTÃO DE NAVEGAÇÃO E ANÚNCIOS (VERSÃO UNIFICADA) ---
+// --- GESTÃO DE NAVEGAÇÃO E ANÚNCIOS ---
 function showPage(id, el) {
-    // 1. Esconder todas as views
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-    
-    // 2. Mostrar a view alvo
     const target = document.getElementById(id);
     if(target) target.classList.remove('hidden');
 
-    // 3. Controle do Header Principal
     const header = document.getElementById('main-header');
     const mains = ['pg-lar', 'pg-tarefa', 'pg-meu', 'pg-vip', 'pg-equipe'];
     if(header) header.style.display = mains.includes(id) ? 'flex' : 'none';
 
-    // 4. Controle visual das abas do menu
     if(el) {
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
     }
     window.scrollTo(0,0);
     
-    // 5. Gestão de Anúncios (Social Bar apenas na Home)
     const oldAd = document.getElementById('ad-social-bar');
     if (oldAd) oldAd.remove();
     if (id === 'pg-lar') {
@@ -381,7 +375,6 @@ function showPage(id, el) {
         document.body.appendChild(s);
     }
 
-    // 6. Gatilhos de carregamento automático
     if(id === 'pg-equipe') sincronizarDados();
     if(id === 'pg-vip') carregarPlanosVIP();
     if(id === 'pg-call-center') {
@@ -392,19 +385,36 @@ function showPage(id, el) {
     }
 }
 
-// --- FUNÇÃO DE TAREFA COM ANÚNCIO (POPUNDER) ---
+// --- CONTROLE DAS ABAS DE TAREFAS (CORREÇÃO DO ERRO) ---
+function showTarefas(aba) {
+    const naoConcluidas = document.getElementById('tarefas-nao-concluidas');
+    const concluidas = document.getElementById('tarefas-concluidas');
+    const btns = document.querySelectorAll('.task-tab-btn');
+
+    btns.forEach(b => b.classList.remove('active'));
+    
+    if (aba === 'concluidas') {
+        naoConcluidas.classList.add('hidden');
+        concluidas.classList.remove('hidden');
+        btns[1].classList.add('active');
+    } else {
+        naoConcluidas.classList.remove('hidden');
+        concluidas.classList.add('hidden');
+        btns[0].classList.add('active');
+    }
+}
+
+// --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // Injeta o Popunder no momento do clique (Gera receita para você)
     const scriptPop = document.createElement('script');
     scriptPop.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
     document.body.appendChild(scriptPop);
 
     toast("A abrir tarefa patrocinada...");
 
-    // Aguarda o processamento do anúncio antes de validar o saldo
     setTimeout(async () => {
         try {
             const res = await fetch(`${API_URL}/api/completar-tarefa`, {
@@ -419,47 +429,38 @@ async function completeTask(val) {
                 const err = await res.json();
                 toast("❌ " + (err.error || "Erro na tarefa"));
             }
-        } catch(e) { 
-            toast("Erro ao salvar tarefa"); 
-        }
+        } catch(e) { toast("Erro ao salvar tarefa"); }
     }, 500);
 }
 
-// --- SINCRONIZAÇÃO DE DADOS ---
-async function sincronizarDados() {
+// --- SUPORTE E IMAGENS ---
+async function enviarImagemSuporte(input) {
+    if (!input.files || !input.files[0]) return;
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
+    
+    toast("Enviando foto...");
+    const formData = new FormData();
+    formData.append("image", input.files[0]);
+
     try {
-        const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-        if (!storageData) return;
-        const user = JSON.parse(storageData);
-        const userId = user.id || user._id;
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+        const dataImg = await resImg.json();
 
-        const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
-        if (resUser.ok) {
-            const dadosNovos = await resUser.json();
-            localStorage.setItem('usuario', JSON.stringify(dadosNovos));
-            
-            const bal = document.getElementById('user-balance');
-            if(bal) bal.innerText = `${dadosNovos.saldo} Kz`;
-
-            const nom = document.getElementById('user-name');
-            if(nom) nom.innerText = dadosNovos.nome;
-            
-            const vipBadge = document.getElementById('user-vip');
-            if(vipBadge) {
-                const nivel = dadosNovos.nivel_vip !== undefined ? dadosNovos.nivel_vip : 0;
-                vipBadge.innerText = `VIP ${nivel}`;
-                vipBadge.style.background = nivel > 0 ? "gold" : "var(--accent-green)";
-            }
-
-            const linkEl = document.getElementById('link-convite');
-            if (linkEl && dadosNovos.referral_id) {
-                linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
-            }
+        if (dataImg.success) {
+            await fetch(`${API_URL}/api/suporte/enviar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    usuario_id: user.id || user._id, 
+                    enviado_por: 'usuario', 
+                    mensagem: `<img src="${dataImg.data.url}" style="max-width:200px; border-radius:10px;">` 
+                })
+            });
+            carregarHistoricoSuporte();
         }
-    } catch (err) { console.error("Erro ao sincronizar:", err); }
+    } catch (err) { toast("Erro ao enviar foto."); }
 }
 
-// --- SISTEMA DE SUPORTE ---
 async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     if(!storageData) return;
@@ -481,22 +482,18 @@ async function carregarHistoricoSuporte() {
             const radius = isMe ? '12px 12px 0 12px' : '12px 12px 12px 0';
 
             box.innerHTML += `
-                <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 10px 15px; border-radius: ${radius}; max-width: 80%; font-size: 13px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 10px 15px; border-radius: ${radius}; max-width: 80%; font-size: 13px; margin-bottom: 8px;">
                     ${m.mensagem}
-                    <div style="font-size: 9px; opacity: 0.6; margin-top: 5px; text-align: right;">
-                        ${new Date(m.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                    </div>
                 </div>`;
         });
         box.scrollTop = box.scrollHeight;
-    } catch (err) { console.error("Erro ao carregar chat"); }
+    } catch (err) { console.error("Erro no chat"); }
 }
 
 async function enviarMensagemSuporte() {
     const input = document.getElementById('mensagem-suporte');
     const msg = input.value.trim();
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
-
     if (!msg) return;
 
     try {
@@ -505,72 +502,41 @@ async function enviarMensagemSuporte() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario_id: user.id || user._id, enviado_por: 'usuario', mensagem: msg })
         });
-        if (res.ok) {
-            input.value = "";
-            carregarHistoricoSuporte();
-        }
-    } catch (err) { toast("Erro ao enviar mensagem."); }
+        if (res.ok) { input.value = ""; carregarHistoricoSuporte(); }
+    } catch (err) { toast("Erro ao enviar."); }
 }
 
-// --- FINANCEIRO (DEPÓSITO E LEVANTAMENTO) ---
-async function confirmarRetirada() {
-    const valor = document.getElementById('valor-retirada').value;
-    const iban = document.getElementById('iban-retirada').value;
-    const titular = document.getElementById('nome-retirada').value;
-    const senha = document.getElementById('senha-retirada').value;
-    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
-
-    if (!valor || valor < 5000) return toast("❌ O valor mínimo é 5.000 Kz");
-    if (iban.length < 10) return toast("❌ Insira um IBAN válido");
-    if (!titular || !senha) return toast("❌ Preencha todos os campos");
-
-    toast("Processando pedido...");
-
+// --- SISTEMA DE DADOS E VIP ---
+async function sincronizarDados() {
     try {
-        const res = await fetch(`${API_URL}/api/levantamento`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id || user._id, valor: parseFloat(valor), iban, nome_titular: titular, senha })
-        });
-        const data = await res.json();
-        if (!res.ok) return toast("❌ " + (data.error || "Erro ao processar"));
+        const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+        if (!storageData) return;
+        const user = JSON.parse(storageData);
+        const userId = user.id || user._id;
 
-        toast("✅ Pedido enviado!");
-        sincronizarDados();
-        setTimeout(() => showPage('pg-lar'), 2000);
-    } catch (err) { toast("❌ Erro de conexão."); }
-}
+        const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
+        if (resUser.ok) {
+            const dadosNovos = await resUser.json();
+            localStorage.setItem('usuario', JSON.stringify(dadosNovos));
+            
+            if(document.getElementById('user-balance')) document.getElementById('user-balance').innerText = `${dadosNovos.saldo} Kz`;
+            if(document.getElementById('user-name')) document.getElementById('user-name').innerText = dadosNovos.nome;
+            
+            const vipBadge = document.getElementById('user-vip');
+            if(vipBadge) {
+                const nivel = dadosNovos.nivel_vip || 0;
+                vipBadge.innerText = `VIP ${nivel}`;
+                vipBadge.style.background = nivel > 0 ? "gold" : "#00ff88";
+            }
 
-async function finalizarDeposito() {
-    const valorInput = document.getElementById('deposito-valor');
-    const imgInput = document.getElementById('comprovativo-img');
-    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
-
-    if (!imgInput.files[0] || valorInput.value < 5000) return toast("Verifique valor e imagem!");
-
-    toast("Hospedando comprovativo...");
-    const formData = new FormData();
-    formData.append("image", imgInput.files[0]);
-
-    try {
-        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
-        const dataImg = await resImg.json();
-
-        if (dataImg.success) {
-            const resFinal = await fetch(`${API_URL}/api/deposito`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario_id: user.id || user._id, valor: valorInput.value, comprovativo: dataImg.data.url })
-            });
-            if (resFinal.ok) {
-                toast("✅ Enviado para análise!");
-                showPage('pg-lar');
+            const linkEl = document.getElementById('link-convite');
+            if (linkEl && dadosNovos.referral_id) {
+                linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
             }
         }
-    } catch (err) { toast("Erro de conexão."); }
+    } catch (err) { console.error("Erro ao sincronizar"); }
 }
 
-// --- VIP ---
 async function carregarPlanosVIP() {
     try {
         const res = await fetch(`${API_URL}/api/vips`);
@@ -585,25 +551,23 @@ async function carregarPlanosVIP() {
                     <div class="card-tag" style="background: gold; color: black;">${p.nome}</div>
                     <div class="card-main" style="flex-direction: column; align-items: flex-start; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
-                            <span style="color: #eee; font-size: 13px;">Preço:</span>
+                            <span style="color: #eee;">Preço:</span>
                             <b style="color: #fff;">${p.preco} Kz</b>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; font-size: 12px;">
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;"><b>Nível ${p.nivel}</b></div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;"><b>${p.qtd_tarefas} Diárias</b></div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; color:#0f0;"><b>${p.ganho_por_tarefa} Kz/T</b></div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; color:gold;"><b>${p.ganho_total_mensal} Kz/Mês</b></div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">Nível ${p.nivel}</div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">${p.qtd_tarefas} Tarefas</div>
                         </div>
                     </div>
                     <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0 0 12px 12px;">Desbloquear</button>
                 </div>`;
         });
-    } catch (err) { console.error("Erro ao carregar VIPs"); }
+    } catch (err) { console.error("Erro VIPs"); }
 }
 
 async function comprarVIP(nivel, preco) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
-    toast("Ativando VIP...");
+    toast("Processando...");
     try {
         const res = await fetch(`${API_URL}/api/comprar-vip`, {
             method: 'POST',
@@ -611,10 +575,62 @@ async function comprarVIP(nivel, preco) {
             body: JSON.stringify({ usuario_id: user.id || user._id, nivel_vip: nivel, valor_pago: preco })
         });
         const data = await res.json();
-        if (!res.ok) return toast("❌ " + (data.error || "Erro na compra"));
+        if (!res.ok) return toast("❌ " + (data.error || "Erro"));
         toast(`✅ VIP ${nivel} Ativado!`);
         sincronizarDados();
-    } catch (err) { toast("❌ Falha na conexão."); }
+    } catch (err) { toast("Erro de conexão"); }
+}
+
+// --- FINANCEIRO ---
+async function confirmarRetirada() {
+    const valor = document.getElementById('valor-retirada').value;
+    const iban = document.getElementById('iban-retirada').value;
+    const titular = document.getElementById('nome-retirada').value;
+    const senha = document.getElementById('senha-retirada').value;
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
+
+    if (valor < 5000) return toast("Mínimo 5.000 Kz");
+    toast("Processando...");
+
+    try {
+        const res = await fetch(`${API_URL}/api/levantamento`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: user.id || user._id, valor: parseFloat(valor), iban, nome_titular: titular, senha })
+        });
+        const data = await res.json();
+        if (!res.ok) return toast("❌ " + (data.error || "Erro"));
+        toast("✅ Pedido enviado!");
+        sincronizarDados();
+        setTimeout(() => showPage('pg-lar'), 2000);
+    } catch (err) { toast("Erro de conexão"); }
+}
+
+async function finalizarDeposito() {
+    const valorInput = document.getElementById('deposito-valor');
+    const imgInput = document.getElementById('comprovativo-img');
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
+
+    if (!imgInput.files[0] || valorInput.value < 5000) return toast("Dados incompletos");
+
+    toast("Hospedando imagem...");
+    const formData = new FormData();
+    formData.append("image", imgInput.files[0]);
+
+    try {
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+        const dataImg = await resImg.json();
+
+        if (dataImg.success) {
+            await fetch(`${API_URL}/api/deposito`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario_id: user.id || user._id, valor: valorInput.value, comprovativo: dataImg.data.url })
+            });
+            toast("✅ Enviado para análise!");
+            showPage('pg-lar');
+        }
+    } catch (err) { toast("Erro de conexão"); }
 }
 
 // --- UTILITÁRIOS ---
@@ -636,6 +652,11 @@ function avancarPagamento() {
     document.getElementById('valor-confirmado').innerText = v + " Kz";
     document.getElementById('deposito-step-1').classList.add('hidden');
     document.getElementById('deposito-step-2').classList.remove('hidden');
+}
+
+function voltarPasso1() {
+    document.getElementById('deposito-step-2').classList.add('hidden');
+    document.getElementById('deposito-step-1').classList.remove('hidden');
 }
 
 window.addEventListener('load', () => {
