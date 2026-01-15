@@ -176,15 +176,15 @@
 
 <div id="pg-vip" class="view hidden">
 <div class="vip-card">
-<div class="card-tag">VIP1</div>
-<div class="card-main">
-<div class="card-img" style="background:var(--primary-purple)"><i class="fa-solid fa-gem"></i></div>
-<div class="card-details">
-<div><p class="c-label">Preço</p><p class="c-val">5.000 Kz</p></div>
-<div><p class="c-label">Diário</p><p class="c-val">500 Kz</p></div>
-</div>
-</div>
-<button class="btn-action">Desbloquear</button>
+    <div class="card-tag">VIP1</div>
+    <div class="card-main">
+        <div class="card-img" style="background:var(--primary-purple)"><i class="fa-solid fa-gem"></i></div>
+        <div class="card-details">
+            <div><p class="c-label">Preço</p><p class="c-val">5.000 Kz</p></div>
+            <div><p class="c-label">Diário</p><p class="c-val">500 Kz</p></div>
+        </div>
+    </div>
+    <button class="btn-action" onclick="comprarVIP(1, 5000)">Desbloquear</button>
 </div>
 </div>
 
@@ -597,6 +597,45 @@ function copiarLink() {
     navigator.clipboard.writeText(link).then(() => {
         toast("✅ Link de convite copiado!");
     });
+}
+
+    async function comprarVIP(nivel, preco) {
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const user = JSON.parse(storageData);
+    const userId = user.id || user._id;
+
+    // Confirmação simples
+    if (!confirm(`Deseja desbloquear o VIP ${nivel} por ${preco} Kz?`)) return;
+
+    toast("Processando compra...");
+
+    try {
+        const res = await fetch(`${API_URL}/api/comprar-vip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuario_id: userId,
+                nivel_vip: nivel,
+                valor_pago: preco
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            // Aqui ele vai mostrar "Saldo insuficiente" se o usuário for pobre
+            return toast("❌ " + (data.error || "Erro na compra"));
+        }
+
+        toast(`✅ Parabéns! Você agora é VIP ${nivel}`);
+        
+        // Atualiza os dados na tela (saldo e nível)
+        sincronizarDados(); 
+        
+    } catch (err) {
+        toast("❌ Erro ao conectar ao servidor.");
+        console.error(err);
+    }
 }
 
 async function finalizarDeposito() {
