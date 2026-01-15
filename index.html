@@ -346,31 +346,86 @@
 </nav>
 </div>
 
-<script>
+    <script>
 const API_URL = "https://warnermida-1.onrender.com";
-const IMGBB_KEY = "f1cbde38d1820926fd47faeb3e74975f"; // Chave extraída do seu código
+const IMGBB_KEY = "f1cbde38d1820926fd47faeb3e74975f";
 
-// --- CONTROLE DE NAVEGAÇÃO ---
+// --- GESTÃO DE NAVEGAÇÃO E ANÚNCIOS (VERSÃO UNIFICADA) ---
 function showPage(id, el) {
+    // 1. Esconder todas as views
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+    
+    // 2. Mostrar a view alvo
     const target = document.getElementById(id);
     if(target) target.classList.remove('hidden');
 
+    // 3. Controle do Header Principal
     const header = document.getElementById('main-header');
     const mains = ['pg-lar', 'pg-tarefa', 'pg-meu', 'pg-vip', 'pg-equipe'];
-    header.style.display = mains.includes(id) ? 'flex' : 'none';
+    if(header) header.style.display = mains.includes(id) ? 'flex' : 'none';
 
+    // 4. Controle visual das abas do menu
     if(el) {
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
     }
     window.scrollTo(0,0);
     
-    // Se abrir a página de equipe, sincroniza os dados dela
+    // 5. Gestão de Anúncios (Social Bar apenas na Home)
+    const oldAd = document.getElementById('ad-social-bar');
+    if (oldAd) oldAd.remove();
+    if (id === 'pg-lar') {
+        const s = document.createElement('script');
+        s.id = 'ad-social-bar';
+        s.src = "https://pl28482641.effectivegatecpm.com/21/2c/ce/212cce11c546c1748273e47a307ea9ad.js";
+        document.body.appendChild(s);
+    }
+
+    // 6. Gatilhos de carregamento automático
     if(id === 'pg-equipe') sincronizarDados();
+    if(id === 'pg-vip') carregarPlanosVIP();
+    if(id === 'pg-call-center') {
+        carregarHistoricoSuporte();
+        window.chatInterval = setInterval(carregarHistoricoSuporte, 5000);
+    } else {
+        if(window.chatInterval) clearInterval(window.chatInterval);
+    }
 }
 
-// --- SINCRONIZAÇÃO DE DADOS (Unificada) ---
+// --- FUNÇÃO DE TAREFA COM ANÚNCIO (POPUNDER) ---
+async function completeTask(val) {
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
+    if (!user) return toast("Faça login");
+
+    // Injeta o Popunder no momento do clique (Gera receita para você)
+    const scriptPop = document.createElement('script');
+    scriptPop.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
+    document.body.appendChild(scriptPop);
+
+    toast("A abrir tarefa patrocinada...");
+
+    // Aguarda o processamento do anúncio antes de validar o saldo
+    setTimeout(async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/completar-tarefa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
+            });
+            if(res.ok) {
+                toast('Tarefa Concluída! +' + val + ' Kz');
+                sincronizarDados();
+            } else {
+                const err = await res.json();
+                toast("❌ " + (err.error || "Erro na tarefa"));
+            }
+        } catch(e) { 
+            toast("Erro ao salvar tarefa"); 
+        }
+    }, 500);
+}
+
+// --- SINCRONIZAÇÃO DE DADOS ---
 async function sincronizarDados() {
     try {
         const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
@@ -381,44 +436,33 @@ async function sincronizarDados() {
         const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (resUser.ok) {
             const dadosNovos = await resUser.json();
-            
-            // 1. Atualiza o LocalStorage com os dados vindos do banco (saldo e VIP novos)
             localStorage.setItem('usuario', JSON.stringify(dadosNovos));
             
-            // 2. Atualiza Saldo
             const bal = document.getElementById('user-balance');
             if(bal) bal.innerText = `${dadosNovos.saldo} Kz`;
 
-            // 3. Atualiza Nome
             const nom = document.getElementById('user-name');
             if(nom) nom.innerText = dadosNovos.nome;
             
-            // 4. ATUALIZA O VIP (O segredo está aqui)
             const vipBadge = document.getElementById('user-vip');
             if(vipBadge) {
-                // Se nivel_vip for null ou undefined, vira 0. Se for 1, vira 1.
                 const nivel = dadosNovos.nivel_vip !== undefined ? dadosNovos.nivel_vip : 0;
                 vipBadge.innerText = `VIP ${nivel}`;
-                
-                // Opcional: Mudar a cor se for VIP maior que 0
                 vipBadge.style.background = nivel > 0 ? "gold" : "var(--accent-green)";
             }
 
-            // Atualiza link de convite
             const linkEl = document.getElementById('link-convite');
             if (linkEl && dadosNovos.referral_id) {
                 linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
             }
         }
-    } catch (err) {
-        console.error("Erro ao sincronizar:", err);
-    }
+    } catch (err) { console.error("Erro ao sincronizar:", err); }
 }
-// --- SISTEMA DE SUPORTE REAL ---
 
-// Carregar histórico quando abrir a página de suporte
+// --- SISTEMA DE SUPORTE ---
 async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    if(!storageData) return;
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
 
@@ -426,6 +470,7 @@ async function carregarHistoricoSuporte() {
         const res = await fetch(`${API_URL}/api/suporte/historico/${userId}`);
         const mensagens = await res.json();
         const box = document.getElementById('chat-messages');
+        if(!box) return;
         box.innerHTML = "";
 
         mensagens.forEach(m => {
@@ -436,7 +481,7 @@ async function carregarHistoricoSuporte() {
             const radius = isMe ? '12px 12px 0 12px' : '12px 12px 12px 0';
 
             box.innerHTML += `
-                <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 10px 15px; border-radius: ${radius}; max-width: 80%; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 10px 15px; border-radius: ${radius}; max-width: 80%; font-size: 13px; margin-bottom: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     ${m.mensagem}
                     <div style="font-size: 9px; opacity: 0.6; margin-top: 5px; text-align: right;">
                         ${new Date(m.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
@@ -444,65 +489,13 @@ async function carregarHistoricoSuporte() {
                 </div>`;
         });
         box.scrollTop = box.scrollHeight;
-    } catch (err) {
-        console.error("Erro ao carregar chat");
-    }
+    } catch (err) { console.error("Erro ao carregar chat"); }
 }
- async function confirmarRetirada() {
-    const valor = document.getElementById('valor-retirada').value;
-    const iban = document.getElementById('iban-retirada').value;
-    const titular = document.getElementById('nome-retirada').value;
-    const senha = document.getElementById('senha-retirada').value;
 
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
-
-    // Validações básicas no front-end
-    if (!valor || valor < 5000) return toast("❌ O valor mínimo é 5.000 Kz");
-    if (iban.length < 10) return toast("❌ Insira um IBAN válido");
-    if (!titular) return toast("❌ Insira o nome do titular");
-    if (!senha) return toast("❌ Insira sua senha");
-
-    toast("Processando pedido...");
-
-    try {
-        const res = await fetch(`${API_URL}/api/levantamento`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                usuario_id: user.id || user._id,
-                valor: parseFloat(valor),
-                iban: iban,
-                nome_titular: titular,
-                senha: senha
-            })
-        });
-
-        // IMPORTANTE: Aqui pegamos a resposta do servidor (mesmo que seja erro)
-        const data = await res.json();
-
-        if (!res.ok) {
-            // Se o servidor retornar 400 (Saldo insuficiente), ele cai aqui
-            // E mostra exatamente a mensagem "Saldo insuficiente" no toast
-            return toast("❌ " + (data.error || "Erro ao processar"));
-        }
-
-        // Se deu tudo certo (Res 200/201)
-        toast("✅ Pedido de levantamento enviado!");
-        document.getElementById('valor-retirada').value = "";
-        sincronizarDados();
-        setTimeout(() => showPage('pg-lar'), 2000);
-
-    } catch (err) {
-        toast("❌ Erro de conexão com o servidor.");
-        console.error("Erro completo:", err);
-    }
-}
 async function enviarMensagemSuporte() {
     const input = document.getElementById('mensagem-suporte');
     const msg = input.value.trim();
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
 
     if (!msg) return;
 
@@ -510,179 +503,81 @@ async function enviarMensagemSuporte() {
         const res = await fetch(`${API_URL}/api/suporte/enviar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                usuario_id: user.id || user._id,
-                enviado_por: 'usuario',
-                mensagem: msg
-            })
+            body: JSON.stringify({ usuario_id: user.id || user._id, enviado_por: 'usuario', mensagem: msg })
         });
-
         if (res.ok) {
             input.value = "";
-            carregarHistoricoSuporte(); // Atualiza a tela
+            carregarHistoricoSuporte();
         }
-    } catch (err) {
-        toast("Erro ao enviar mensagem.");
-    }
+    } catch (err) { toast("Erro ao enviar mensagem."); }
 }
 
-// Atualizar a função showPage para carregar o chat quando abrir o suporte
-const originalShowPage = showPage;
-showPage = function(id, el) {
-    originalShowPage(id, el);
-    if (id === 'pg-call-center') {
-        carregarHistoricoSuporte();
-        // Opcional: Atualizar o chat a cada 5 segundos enquanto estiver na página
-        window.chatInterval = setInterval(carregarHistoricoSuporte, 5000);
-    } else {
-        clearInterval(window.chatInterval);
-    }
-}
+// --- FINANCEIRO (DEPÓSITO E LEVANTAMENTO) ---
+async function confirmarRetirada() {
+    const valor = document.getElementById('valor-retirada').value;
+    const iban = document.getElementById('iban-retirada').value;
+    const titular = document.getElementById('nome-retirada').value;
+    const senha = document.getElementById('senha-retirada').value;
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
 
-    // Função para o usuário enviar foto no chat de suporte
-async function enviarImagemSuporte(input) {
-    if (!input.files || !input.files[0]) return;
+    if (!valor || valor < 5000) return toast("❌ O valor mínimo é 5.000 Kz");
+    if (iban.length < 10) return toast("❌ Insira um IBAN válido");
+    if (!titular || !senha) return toast("❌ Preencha todos os campos");
 
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
-    const userId = user.id || user._id;
-
-    toast("Hospedando imagem...");
-    const formData = new FormData();
-    formData.append("image", input.files[0]);
+    toast("Processando pedido...");
 
     try {
-        // 1. Envia para o ImgBB
-        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-            method: "POST",
-            body: formData
-        });
-        const dataImg = await resImg.json();
-
-        if (dataImg.success) {
-            const urlImagem = dataImg.data.url;
-            
-            // 2. Envia a tag HTML da imagem como mensagem para o banco
-            const resChat = await fetch(`${API_URL}/api/suporte/enviar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    usuario_id: userId,
-                    enviado_por: 'usuario',
-                    // Enviamos a tag IMG formatada para o chat exibir direto
-                    mensagem: `<img src="${urlImagem}" style="max-width:100%; border-radius:10px; display:block; margin:5px 0;">`
-                })
-            });
-
-            if (resChat.ok) {
-                toast("Foto enviada!");
-                carregarHistoricoSuporte();
-            }
-        }
-    } catch (err) {
-        toast("Erro ao enviar foto.");
-        console.error(err);
-    }
-}
-// --- FUNÇÕES DE INTERAÇÃO ---
-function copiarLink() {
-    const linkEl = document.getElementById('link-convite');
-    if(!linkEl) return;
-    const link = linkEl.innerText;
-    navigator.clipboard.writeText(link).then(() => {
-        toast("✅ Link de convite copiado!");
-    });
-}
-
-    async function comprarVIP(nivel, preco) {
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
-    const userId = user.id || user._id;
-
-    // Removemos o confirm() e usamos apenas o toast de processamento
-    toast("Processando ativação do VIP...");
-
-    try {
-        const res = await fetch(`${API_URL}/api/comprar-vip`, {
+        const res = await fetch(`${API_URL}/api/levantamento`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                usuario_id: userId,
-                nivel_vip: nivel,
-                valor_pago: preco
-            })
+            body: JSON.stringify({ usuario_id: user.id || user._id, valor: parseFloat(valor), iban, nome_titular: titular, senha })
         });
-
-        // Verifica se o servidor retornou HTML (erro 404/500) em vez de JSON
-        const contentType = res.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            return toast("❌ Erro: Servidor em manutenção (404)");
-        }
-
         const data = await res.json();
+        if (!res.ok) return toast("❌ " + (data.error || "Erro ao processar"));
 
-        if (!res.ok) {
-            return toast("❌ " + (data.error || "Erro na compra"));
-        }
-
-        toast(`✅ VIP ${nivel} Ativado com sucesso!`);
-        sincronizarDados(); 
-
-    } catch (err) {
-        toast("❌ Falha na conexão com o servidor.");
-        console.error("Erro técnico:", err);
-    }
+        toast("✅ Pedido enviado!");
+        sincronizarDados();
+        setTimeout(() => showPage('pg-lar'), 2000);
+    } catch (err) { toast("❌ Erro de conexão."); }
 }
 
 async function finalizarDeposito() {
     const valorInput = document.getElementById('deposito-valor');
     const imgInput = document.getElementById('comprovativo-img');
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    const user = JSON.parse(storageData);
+    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
 
-    if (!imgInput.files || imgInput.files.length === 0) return toast("Selecione a foto!");
-    if (!valorInput.value || valorInput.value < 5000) return toast("Mínimo: 5.000 Kz");
+    if (!imgInput.files[0] || valorInput.value < 5000) return toast("Verifique valor e imagem!");
 
-    toast("Hospedando imagem...");
+    toast("Hospedando comprovativo...");
     const formData = new FormData();
     formData.append("image", imgInput.files[0]);
 
     try {
-        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-            method: "POST",
-            body: formData
-        });
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
         const dataImg = await resImg.json();
 
         if (dataImg.success) {
             const resFinal = await fetch(`${API_URL}/api/deposito`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    usuario_id: user.id || user._id,
-                    valor: valorInput.value,
-                    comprovativo: dataImg.data.url
-                })
+                body: JSON.stringify({ usuario_id: user.id || user._id, valor: valorInput.value, comprovativo: dataImg.data.url })
             });
             if (resFinal.ok) {
                 toast("✅ Enviado para análise!");
                 showPage('pg-lar');
-                voltarPasso1();
             }
-        } else {
-            toast("Erro ao carregar imagem.");
         }
     } catch (err) { toast("Erro de conexão."); }
 }
 
-    async function carregarPlanosVIP() {
+// --- VIP ---
+async function carregarPlanosVIP() {
     try {
         const res = await fetch(`${API_URL}/api/vips`);
         const planos = await res.json();
         const container = document.getElementById('container-vips-lista');
-        
         if(!container) return;
-        container.innerHTML = ""; // Limpa o "Carregando..."
+        container.innerHTML = "";
 
         planos.forEach(p => {
             container.innerHTML += `
@@ -690,70 +585,39 @@ async function finalizarDeposito() {
                     <div class="card-tag" style="background: gold; color: black;">${p.nome}</div>
                     <div class="card-main" style="flex-direction: column; align-items: flex-start; padding: 15px;">
                         <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
-                            <span style="color: #eee; font-size: 13px;">Preço de Ativação:</span>
+                            <span style="color: #eee; font-size: 13px;">Preço:</span>
                             <b style="color: #fff;">${p.preco} Kz</b>
                         </div>
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; font-size: 12px;">
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
-                                <p style="opacity: 0.7;">Nível</p>
-                                <b>Nível ${p.nivel}</b>
-                            </div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
-                                <p style="opacity: 0.7;">Tarefas</p>
-                                <b>${p.qtd_tarefas} Diárias</b>
-                            </div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
-                                <p style="opacity: 0.7;">Ganho/Tarefa</p>
-                                <b style="color: #00ff00;">${p.ganho_por_tarefa} Kz</b>
-                            </div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">
-                                <p style="opacity: 0.7;">Renda Mensal</p>
-                                <b style="color: gold;">${p.ganho_total_mensal} Kz</b>
-                            </div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;"><b>Nível ${p.nivel}</b></div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;"><b>${p.qtd_tarefas} Diárias</b></div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; color:#0f0;"><b>${p.ganho_por_tarefa} Kz/T</b></div>
+                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; color:gold;"><b>${p.ganho_total_mensal} Kz/Mês</b></div>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0 0 12px 12px;">
-                        Desbloquear Agora
-                    </button>
-                </div>
-            `;
+                    <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0 0 12px 12px;">Desbloquear</button>
+                </div>`;
         });
-    } catch (err) {
-        console.error("Erro ao carregar VIPs:", err);
-    }
+    } catch (err) { console.error("Erro ao carregar VIPs"); }
 }
 
-// ATUALIZE sua função showPage existente para chamar o carregamento:
-const originalShowPageVip = showPage;
-showPage = function(id, el) {
-    if (typeof originalShowPageVip === 'function') originalShowPageVip(id, el);
-    if (id === 'pg-vip') carregarPlanosVIP();
-}
-
-async function completeTask(val) {
+async function comprarVIP(nivel, preco) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
-    if (!user) return toast("Faça login");
-    
-    toast("Processando...");
+    toast("Ativando VIP...");
     try {
-        const res = await fetch(`${API_URL}/api/completar-tarefa`, {
+        const res = await fetch(`${API_URL}/api/comprar-vip`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
+            body: JSON.stringify({ usuario_id: user.id || user._id, nivel_vip: nivel, valor_pago: preco })
         });
-        if(res.ok) {
-            toast('Tarefa Concluída! +' + val + ' Kz');
-            sincronizarDados();
-        }
-    } catch(e) { toast("Erro ao salvar"); }
+        const data = await res.json();
+        if (!res.ok) return toast("❌ " + (data.error || "Erro na compra"));
+        toast(`✅ VIP ${nivel} Ativado!`);
+        sincronizarDados();
+    } catch (err) { toast("❌ Falha na conexão."); }
 }
 
 // --- UTILITÁRIOS ---
-function logout() {
-    localStorage.clear();
-    window.location.href = 'login.html';
-}
-
 function toast(msg) {
     const t = document.createElement('div');
     t.style = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 20px; border-radius:25px; font-size:12px; z-index:9999; text-align:center; min-width:200px;";
@@ -762,10 +626,9 @@ function toast(msg) {
     setTimeout(() => t.remove(), 2500);
 }
 
-function copiarIBAN() {
-    navigator.clipboard.writeText(document.getElementById('iban-txt').innerText);
-    toast("IBAN copiado!");
-}
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+function copiarIBAN() { navigator.clipboard.writeText(document.getElementById('iban-txt').innerText); toast("IBAN copiado!"); }
+function copiarLink() { navigator.clipboard.writeText(document.getElementById('link-convite').innerText); toast("Link copiado!"); }
 
 function avancarPagamento() {
     const v = document.getElementById('deposito-valor').value;
@@ -773,11 +636,6 @@ function avancarPagamento() {
     document.getElementById('valor-confirmado').innerText = v + " Kz";
     document.getElementById('deposito-step-1').classList.add('hidden');
     document.getElementById('deposito-step-2').classList.remove('hidden');
-}
-
-function voltarPasso1() {
-    document.getElementById('deposito-step-2').classList.add('hidden');
-    document.getElementById('deposito-step-1').classList.remove('hidden');
 }
 
 window.addEventListener('load', () => {
