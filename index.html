@@ -110,12 +110,15 @@
 <div id="pg-call-center" class="view page-finance hidden">
     <div class="finance-header" onclick="showPage('pg-lar')"><i class="fa-solid fa-chevron-left"></i> Suporte</div>
     <div class="finance-body">
-        <div class="chat-container">
-            <div class="chat-messages" id="chat-messages">
-                </div>
-            <div class="chat-input" style="display: flex; gap: 10px;">
-                <input type="text" id="mensagem-suporte" placeholder="Digite sua mensagem aqui..." style="flex: 1; padding: 10px; border-radius: 8px;">
-                <button class="btn-send" onclick="enviarMensagemSuporte()" style="background: var(--primary-purple); color: white; border: none; padding: 10px 15px; border-radius: 8px;"><i class="fa-solid fa-paper-plane"></i></button>
+        <div class="chat-container" style="background: #fff; border-radius: 12px; display: flex; flex-direction: column; height: 70vh;">
+            <div class="chat-messages" id="chat-messages" style="flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                <p style="text-align: center; color: #888; font-size: 11px;">Olá! Como podemos ajudar hoje?</p>
+            </div>
+            <div class="chat-input" style="display: flex; gap: 10px; padding: 10px; border-top: 1px solid #eee;">
+                <input type="text" id="mensagem-suporte" placeholder="Digite sua mensagem..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ddd; outline: none;">
+                <button onclick="enviarMensagemSuporte()" style="background: #6a3ab2; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer;">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
             </div>
         </div>
     </div>
@@ -410,7 +413,81 @@ async function sincronizarDados() {
         console.warn("Sincronização pendente ou erro de rede.");
     }
 }
+// --- SISTEMA DE SUPORTE REAL ---
 
+// Carregar histórico quando abrir a página de suporte
+async function carregarHistoricoSuporte() {
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const user = JSON.parse(storageData);
+    const userId = user.id || user._id;
+
+    try {
+        const res = await fetch(`${API_URL}/api/suporte/historico/${userId}`);
+        const mensagens = await res.json();
+        const box = document.getElementById('chat-messages');
+        box.innerHTML = "";
+
+        mensagens.forEach(m => {
+            const isMe = m.enviado_por === 'usuario';
+            const align = isMe ? 'flex-end' : 'flex-start';
+            const bg = isMe ? '#6a3ab2' : '#f1f1f1';
+            const color = isMe ? '#fff' : '#333';
+            const radius = isMe ? '12px 12px 0 12px' : '12px 12px 12px 0';
+
+            box.innerHTML += `
+                <div style="align-self: ${align}; background: ${bg}; color: ${color}; padding: 10px 15px; border-radius: ${radius}; max-width: 80%; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                    ${m.mensagem}
+                    <div style="font-size: 9px; opacity: 0.6; margin-top: 5px; text-align: right;">
+                        ${new Date(m.data).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                    </div>
+                </div>`;
+        });
+        box.scrollTop = box.scrollHeight;
+    } catch (err) {
+        console.error("Erro ao carregar chat");
+    }
+}
+
+async function enviarMensagemSuporte() {
+    const input = document.getElementById('mensagem-suporte');
+    const msg = input.value.trim();
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const user = JSON.parse(storageData);
+
+    if (!msg) return;
+
+    try {
+        const res = await fetch(`${API_URL}/api/suporte/enviar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuario_id: user.id || user._id,
+                enviado_por: 'usuario',
+                mensagem: msg
+            })
+        });
+
+        if (res.ok) {
+            input.value = "";
+            carregarHistoricoSuporte(); // Atualiza a tela
+        }
+    } catch (err) {
+        toast("Erro ao enviar mensagem.");
+    }
+}
+
+// Atualizar a função showPage para carregar o chat quando abrir o suporte
+const originalShowPage = showPage;
+showPage = function(id, el) {
+    originalShowPage(id, el);
+    if (id === 'pg-call-center') {
+        carregarHistoricoSuporte();
+        // Opcional: Atualizar o chat a cada 5 segundos enquanto estiver na página
+        window.chatInterval = setInterval(carregarHistoricoSuporte, 5000);
+    } else {
+        clearInterval(window.chatInterval);
+    }
+}
 // --- FUNÇÕES DE INTERAÇÃO ---
 function copiarLink() {
     const linkEl = document.getElementById('link-convite');
