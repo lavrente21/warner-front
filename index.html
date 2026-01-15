@@ -410,45 +410,36 @@ async function completeTask(val) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // Link oficial com a sua KEY fornecida
-    const adURL = "https://www.highrevenuenetwork.com/f8b9x7z6?key=6dbdd9b368e7686dfc3750c91cdf2039"; 
+    toast("A carregar tarefa... Clique em qualquer lugar para validar!");
 
-    toast("A abrir tarefa patrocinada...");
+    // 1. Injeta o Script de Popunder dinamicamente
+    // Este script fará com que o PRÓXIMO CLIQUE do usuário abra o anúncio
+    const s = document.createElement('script');
+    s.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
+    document.body.appendChild(s);
 
-    // 1. Tenta abrir o anúncio em nova aba
-    const win = window.open(adURL, '_blank');
-
-    // 2. Se o navegador bloquear, avisa o usuário
-    if (!win) {
-        toast("⚠️ Por favor, permita Pop-ups para validar a tarefa!");
-        return;
-    }
-
-    // 3. Aguarda 3 segundos para o usuário ver o anúncio e valida no banco de dados
+    // 2. Processa o pagamento no banco de dados
+    // Damos um tempo maior (4 segundos) para o usuário clicar e o popunder abrir
     setTimeout(async () => {
         try {
             const res = await fetch(`${API_URL}/api/completar-tarefa`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    usuario_id: user.id || user._id, 
-                    valor: val 
-                })
+                body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
             });
             
             if(res.ok) {
-                toast(`✅ Tarefa Concluída! +${val} Kz`);
-                sincronizarDados(); // Atualiza o saldo na tela do usuário
-            } else {
-                const errorData = await res.json();
-                toast("❌ Erro: " + (errorData.error || "Tente novamente"));
+                toast(`✅ Sucesso! +${val} Kz`);
+                sincronizarDados();
+                s.remove(); // Limpa o script para não abrir anúncios extras depois
             }
         } catch(e) { 
-            toast("Erro de conexão com o servidor"); 
+            console.error("Erro ao salvar tarefa"); 
         }
-    }, 3000);
+    }, 4000); 
 }
-// --- SUPORTE E IMAGENS ---
+        
+        // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
     if (!input.files || !input.files[0]) return;
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
