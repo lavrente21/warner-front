@@ -415,7 +415,7 @@ async function completeTask(val, buttonEl) {
     const adURL = "https://otieu.com/4/10478792";
 
     // 1. Prepara o botão para o clique obrigatório
-    buttonEl.innerText = "ABRIR TAREFA (ANÚNCIO)";
+    buttonEl.innerText = "ABRIR TAREFA (segundos)";
     buttonEl.style.background = "#e67e22"; 
 
     buttonEl.onclick = () => {
@@ -427,7 +427,7 @@ async function completeTask(val, buttonEl) {
             return;
         }
 
-        toast("Aguarde 5 segundos na página da tarefa...");
+        toast("Aguarde 10 segundos na página da tarefa...");
         buttonEl.innerText = "⏳ Verificando...";
         buttonEl.disabled = true;
 
