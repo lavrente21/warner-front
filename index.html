@@ -365,20 +365,7 @@ function showPage(id, el) {
     }
     window.scrollTo(0,0);
     
-    const oldAd = document.getElementById('ad-social-bar');
-    if (oldAd) oldAd.remove();
-    if (id === 'pg-lar') {
-        const s = document.createElement('script');
-        s.id = 'ad-social-bar';
-        s.src = "https://pl28482641.effectivegatecpm.com/21/2c/ce/212cce11c546c1748273e47a307ea9ad.js";
-        document.body.appendChild(s);
-        // REMOVE O POP-UNDER CASO O USUÁRIO MUDE DE ABA SEM CONCLUIR A TAREFA
-    const activePop = document.getElementById('ad-task-popunder');
-    if (activePop) activePop.remove();
-
-    }
-
-    
+    // Removido sistema de injeção de script de anúncios globais para evitar bloqueios
     if(id === 'pg-equipe') sincronizarDados();
     if(id === 'pg-vip') carregarPlanosVIP();
     if(id === 'pg-call-center') {
@@ -388,7 +375,6 @@ function showPage(id, el) {
         if(window.chatInterval) clearInterval(window.chatInterval);
     }
 }
-
 // --- CONTROLE DAS ABAS DE TAREFAS (CORREÇÃO DO ERRO) ---
 function showTarefas(aba) {
     const naoConcluidas = document.getElementById('tarefas-nao-concluidas');
@@ -416,28 +402,36 @@ async function completeTask(val, buttonEl) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // 1. Criamos o script com um ID ÚNICO para controle
-    const s = document.createElement('script');
-    s.id = 'ad-task-popunder'; // ID para podermos remover depois
-    s.src = "https://pl28482632.effectivegatecpm.com/b8/c2/ee/b8c2ee1addd64e1d6b11467833ec722f.js";
-    document.body.appendChild(s);
+    // O SEU LINK DIRECTO MONETAG/PROPELLER
+    const adURL = "https://otieu.com/4/10478792";
 
-    // 2. Fluxo visual do botão
-    buttonEl.innerText = "CLIQUE PARA ABRIR ANÚNCIO";
+    // 1. Prepara o botão para o clique obrigatório
+    buttonEl.innerText = "ABRIR TAREFA (ANÚNCIO)";
     buttonEl.style.background = "#e67e22"; 
 
     buttonEl.onclick = () => {
-        toast("A abrir aba de tarefa...");
+        // 2. Abre a aba do anúncio diretamente
+        const win = window.open(adURL, '_blank');
         
-        buttonEl.innerText = "⏳ Verificando em 5s...";
+        if (!win) {
+            toast("⚠️ Ative os Pop-ups para abrir a tarefa!");
+            return;
+        }
+
+        toast("Aguarde 5 segundos na página da tarefa...");
+        buttonEl.innerText = "⏳ Verificando...";
         buttonEl.disabled = true;
 
+        // 3. Temporizador de 5 segundos para libertar o pagamento
         setTimeout(() => {
             buttonEl.innerText = "CONFIRMAR E RECEBER";
             buttonEl.disabled = false;
             buttonEl.style.background = "#27ae60";
 
             buttonEl.onclick = async () => {
+                buttonEl.disabled = true;
+                buttonEl.innerText = "A processar...";
+                
                 try {
                     const res = await fetch(`${API_URL}/api/completar-tarefa`, {
                         method: 'POST',
@@ -446,18 +440,18 @@ async function completeTask(val, buttonEl) {
                     });
 
                     if (res.ok) {
-                        toast(`✅ +${val} Kz adicionados!`);
+                        toast(`✅ +${val} Kz creditados!`);
                         sincronizarDados();
                         buttonEl.innerText = "CONCLUÍDO";
-                        buttonEl.disabled = true;
                         buttonEl.style.background = "#ccc";
-                        
-                        // REMOVE O SCRIPT IMEDIATAMENTE APÓS O GANHO
-                        const adScript = document.getElementById('ad-task-popunder');
-                        if (adScript) adScript.remove();
+                    } else {
+                        toast("Erro ao validar.");
+                        buttonEl.disabled = false;
+                        buttonEl.innerText = "TENTAR NOVAMENTE";
                     }
                 } catch (e) {
-                    toast("Erro de conexão.");
+                    toast("Erro de ligação.");
+                    buttonEl.disabled = false;
                 }
             };
         }, 5000);
