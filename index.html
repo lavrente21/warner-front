@@ -405,25 +405,30 @@ function showTarefas(aba) {
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
-async function completeTask(val, buttonEl) {
+// --- FUNÇÃO DE TAREFA COMPLETA (MONETAG + CONTROLE DIÁRIO) ---
+async function completeTask(val, buttonEl, taskId) {
     if (!buttonEl) return;
 
+    // 1. Verificar login e dados do usuário
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     if (!storageData) return toast("⚠️ Faça login primeiro!");
     
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
 
+    // 2. Link do Monetag
     const monetagLink = "https://otieu.com/4/10483033";
     
-    // Abre o anúncio
+    // 3. Abrir anúncio em nova aba
     const win = window.open(monetagLink, '_blank');
-    if (!win) return toast("⚠️ Ative os Pop-ups!");
+    if (!win) return toast("⚠️ Ative os Pop-ups para ganhar!");
 
-    // Inicia cronômetro
+    // 4. Iniciar Cronômetro de 10 segundos
     let tempo = 10;
     buttonEl.disabled = true;
+    const corOriginal = buttonEl.style.background;
     buttonEl.style.background = "#555";
+    buttonEl.style.cursor = "not-allowed";
 
     const contador = setInterval(async () => {
         tempo--;
@@ -434,22 +439,49 @@ async function completeTask(val, buttonEl) {
             buttonEl.innerText = "VALIDANDO...";
 
             try {
-                const res = await fetch(`${API_URL}/api/postback-cpagrip?user_id=${userId}`);
-                const status = await res.text();
+                // 5. Chamada para a API (Envia o ID do usuário e o ID da tarefa para o limite diário)
+                // A rota deve salvar no banco de dados que esta tarefa foi feita HOJE
+                const res = await fetch(`${API_URL}/api/completar-tarefa`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        usuario_id: userId, 
+                        valor: val,
+                        task_id: taskId // ID único da tarefa para marcar como feita
+                    })
+                });
 
-                if (status === "OK") {
-                    toast("✅ +250 Kz recebidos!");
-                    buttonEl.innerText = "CONCLUÍDO";
+                const data = await res.json();
+
+                if (res.ok) {
+                    toast(`✅ Sucesso! +${val} Kz creditados.`);
+                    
+                    // 6. Marcar como concluído visualmente
+                    buttonEl.innerText = "CONCLUÍDO ✅";
                     buttonEl.style.background = "#27ae60";
+                    buttonEl.onclick = null; // Desativa o clique permanente
+
+                    // 7. Mover para a aba de "Concluídos"
+                    const card = buttonEl.closest('.task-card');
+                    if (card) {
+                        const listaConcluidas = document.getElementById('tarefas-concluidas');
+                        if (listaConcluidas.querySelector('p')) listaConcluidas.innerHTML = ''; 
+                        listaConcluidas.appendChild(card);
+                    }
+
+                    // 8. Atualizar saldo na tela
                     sincronizarDados();
                 } else {
-                    toast("❌ Erro ao validar.");
+                    // Caso o servidor diga que ele já atingiu o limite do VIP
+                    toast(`❌ ${data.error || "Erro ao validar"}`);
                     buttonEl.disabled = false;
                     buttonEl.innerText = "TENTAR NOVAMENTE";
+                    buttonEl.style.background = corOriginal;
                 }
             } catch (e) {
-                toast("Erro de conexão");
+                toast("❌ Erro de conexão com o servidor.");
                 buttonEl.disabled = false;
+                buttonEl.innerText = "ERRO DE REDE";
             }
         }
     }, 1000);
