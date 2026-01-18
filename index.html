@@ -405,46 +405,6 @@ function showTarefas(aba) {
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
-async function completeTask(val, buttonEl) {
-    if (!buttonEl) return;
-
-    // 1. Pega os dados do utilizador logado
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
-    if (!storageData) return toast("⚠️ Faça login primeiro!");
-    
-    const user = JSON.parse(storageData);
-    const userId = user.id || user._id; // Pega o ID único do banco de dados
-
-    // 2. Link do seu Locker do CPAGrip com o ID do usuário anexado
-    // O parâmetro 'tracking_id' é o que o CPAGrip vai devolver no Postback
-    const cpaLink = `https://playabledownloads.com/1868546?tracking_id=${userId}`;
-
-    // 3. Estética do botão ao clicar
-    buttonEl.innerText = "A CARREGAR OFERTAS...";
-    buttonEl.style.background = "#2980b9"; 
-
-    buttonEl.onclick = () => {
-        // 4. Abre o CPAGrip numa nova aba
-        const win = window.open(cpaLink, '_blank');
-        
-        if (!win) {
-            toast("⚠️ Ative os Pop-ups para abrir a tarefa!");
-            return;
-        }
-
-        // Instrução para o usuário
-        toast("⚠️ Instale o App e abra-o para receber os Kwanzas!");
-        
-        buttonEl.innerText = "⏳ AGUARDANDO INSTALAÇÃO...";
-        buttonEl.disabled = true;
-        buttonEl.style.background = "#555";
-        buttonEl.style.cursor = "not-allowed";
-
-        // NOTA: Com o Postback configurado, o saldo do usuário 
-        // subirá sozinho assim que o CPAGrip confirmar a ação.
-        // O usuário pode simplesmente fechar o anúncio e o saldo atualizará.
-    };
-}
         
         // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
@@ -456,7 +416,66 @@ async function enviarImagemSuporte(input) {
     formData.append("image", input.files[0]);
 
     try {
-        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: formData });
+        const resImg = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fo// --- FUNÇÃO DE TAREFA COM MONETAG + TEMPORIZADOR ---
+async function completeTask(val, buttonEl) {
+    if (!buttonEl) return;
+
+    // 1. Pega os dados do utilizador logado
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    if (!storageData) return toast("⚠️ Faça login primeiro!");
+    
+    const user = JSON.parse(storageData);
+    const userId = user.id || user._id;
+
+    // 2. Link Direto do Monetag
+    const monetagLink = "https://otieu.com/4/10483033";
+
+    // 3. Abre o Monetag numa nova aba imediatamente
+    const win = window.open(monetagLink, '_blank');
+    
+    if (!win) {
+        toast("⚠️ Ative os Pop-ups para abrir a tarefa!");
+        return;
+    }
+
+    // 4. Inicia o temporizador no botão
+    let tempo = 10;
+    buttonEl.disabled = true;
+    buttonEl.style.background = "#555";
+    buttonEl.style.cursor = "not-allowed";
+
+    const contador = setInterval(async () => {
+        tempo--;
+        buttonEl.innerText = `AGUARDE ${tempo}s...`;
+
+        if (tempo <= 0) {
+            clearInterval(contador);
+            buttonEl.innerText = "A PROCESSAR...";
+
+            // 5. Chama o seu servidor para dar os 250 Kz (ou o valor da tarefa)
+            try {
+                // Usamos a mesma rota de postback que já funciona no seu servidor
+                const res = await fetch(`${API_URL}/api/postback-cpagrip?user_id=${userId}`);
+                const status = await res.text();
+
+                if (status === "OK") {
+                    buttonEl.innerText = "CONCLUÍDA ✅";
+                    buttonEl.style.background = "#28a745";
+                    toast("✅ Parabéns! Saldo creditado.");
+                    sincronizarDados(); // Atualiza o saldo na tela
+                } else {
+                    buttonEl.innerText = "ERRO AO VALIDAR";
+                    buttonEl.disabled = false;
+                    buttonEl.style.background = "#e74c3c";
+                }
+            } catch (err) {
+                toast("❌ Erro de conexão com o servidor");
+                buttonEl.disabled = false;
+                buttonEl.style.background = "#e74c3c";
+            }
+        }
+    }, 1000);
+                        }rmData });
         const dataImg = await resImg.json();
 
         if (dataImg.success) {
