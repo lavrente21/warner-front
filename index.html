@@ -354,7 +354,7 @@
 </nav>
 </div>
 
-    <script>
+        <script>
 const API_URL = "https://warnermida-1.onrender.com";
 const IMGBB_KEY = "f1cbde38d1820926fd47faeb3e74975f";
 
@@ -373,7 +373,7 @@ function showPage(id, el) {
         el.classList.add('active');
     }
     window.scrollTo(0,0);
-    
+
     // Removido sistema de injeção de script de anúncios globais para evitar bloqueios
     if(id === 'pg-equipe') sincronizarDados();
     if(id === 'pg-vip') carregarPlanosVIP();
@@ -384,7 +384,8 @@ function showPage(id, el) {
         if(window.chatInterval) clearInterval(window.chatInterval);
     }
 }
-// --- CONTROLE DAS ABAS Dfunction showTarefas(aba) {
+// --- CONTROLE DAS ABAS DE TAREFAS (CORREÇÃO DO ERRO) ---
+function showTarefas(aba) {
     const naoConcluidas = document.getElementById('tarefas-nao-concluidas');
     const concluidas = document.getElementById('tarefas-concluidas');
     const btns = document.querySelectorAll('.task-tab-btn');
