@@ -480,12 +480,15 @@ async function enviarImagemSuporte(input) {
             });
             carregarHistoricoSuporte();
         }
-    } catch (err) { toast("Erro ao enviar foto."); }
-            }E TAREFAS (CORREÇÃO DO ERRO) ---
+    } catch (err) { 
+        toast("Erro ao enviar foto."); 
+    }
+} // <--- Certifique-se que esta chave fecha a função enviarImagemSuporte
 
-
+// --- FUNÇÃO SEGUINTE ---
 async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    // ... restante do código
     if(!storageData) return;
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
