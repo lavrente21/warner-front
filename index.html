@@ -411,27 +411,27 @@ async function completeTask(val, buttonEl) {
     const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
     if (!user) return toast("Faça login");
 
-    // O SEU LINK DIRECTO MONETAG/PROPELLER
-    const adURL = "https://otieu.com/4/10478792";
+    // SEU NOVO LINK DO CPAGRIP
+    const cpaLink = "https://playabledownloads.com/1868546";
 
-    // 1. Prepara o botão para o clique obrigatório
-    buttonEl.innerText = "ABRIR TAREFA (segundos)";
-    buttonEl.style.background = "#e67e22"; 
+    buttonEl.innerText = "ABRIR OFERTAS (GANHAR)";
+    buttonEl.style.background = "#2980b9"; // Azul para diferenciar
 
     buttonEl.onclick = () => {
-        // 2. Abre a aba do anúncio diretamente
-        const win = window.open(adURL, '_blank');
+        // 1. Abre o Locker do CPAGrip
+        const win = window.open(cpaLink, '_blank');
         
         if (!win) {
-            toast("⚠️ Ative os Pop-ups para abrir a tarefa!");
+            toast("⚠️ Ative os Pop-ups para ver as ofertas!");
             return;
         }
 
-        toast("Aguarde 10 segundos na página da tarefa...");
-        buttonEl.innerText = "⏳ Verificando...";
+        // Como CPAGrip exige instalação/ação, o tempo de espera deve ser maior
+        toast("Complete uma oferta na página que abriu para validar!");
+        buttonEl.innerText = "⏳ Verificando em 30s...";
         buttonEl.disabled = true;
 
-        // 3. Temporizador de 5 segundos para libertar o pagamento
+        // 2. Aguarda 30 segundos (tempo mínimo para uma oferta de app/CPA)
         setTimeout(() => {
             buttonEl.innerText = "CONFIRMAR E RECEBER";
             buttonEl.disabled = false;
@@ -449,21 +449,22 @@ async function completeTask(val, buttonEl) {
                     });
 
                     if (res.ok) {
-                        toast(`✅ +${val} Kz creditados!`);
+                        toast(`✅ Sucesso! +${val} Kz creditados.`);
                         sincronizarDados();
                         buttonEl.innerText = "CONCLUÍDO";
                         buttonEl.style.background = "#ccc";
+                        buttonEl.onclick = null;
                     } else {
-                        toast("Erro ao validar.");
+                        toast("Erro ao validar. Tentou completar a oferta?");
                         buttonEl.disabled = false;
                         buttonEl.innerText = "TENTAR NOVAMENTE";
                     }
                 } catch (e) {
-                    toast("Erro de ligação.");
+                    toast("Erro de conexão.");
                     buttonEl.disabled = false;
                 }
             };
-        }, 5000);
+        }, 30000); // 30 segundos
     };
 }
         
