@@ -563,6 +563,42 @@ async function sincronizarDados() {
     } catch (err) { console.error("Erro ao sincronizar"); }
 }
 
+            async function renderizarTarefasDoDia() {
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    const nivelVip = user.nivel_vip || 0;
+    
+    // Busca as tarefas disponíveis para o nível do usuário
+    try {
+        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id || user._id}`);
+        const tarefas = await res.json();
+        
+        const container = document.getElementById('tarefas-nao-concluidas');
+        container.innerHTML = "";
+
+        // Se o usuário já atingiu o limite do VIP dele hoje
+        if (tarefas.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Você já completou suas tarefas de hoje! Volte amanhã.</p>";
+            return;
+        }
+
+        tarefas.forEach(t => {
+            container.innerHTML += `
+                <div class="task-card" id="task-${t.id}">
+                    <div class="card-tag">VIP ${nivelVip}</div>
+                    <div class="card-main">
+                        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
+                        <div class="card-details">
+                            <div><p class="c-label">Recompensa</p><p class="c-val">${t.recompensa} Kz</p></div>
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="completeTask(${t.recompensa}, this)">Ir para tarefa</button>
+                </div>`;
+        });
+    } catch (e) {
+        console.error("Erro ao carregar tarefas");
+    }
+            }
+
 async function carregarPlanosVIP() {
     try {
         const res = await fetch(`${API_URL}/api/vips`);
