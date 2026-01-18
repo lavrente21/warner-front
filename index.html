@@ -406,39 +406,24 @@ function showTarefas(aba) {
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
 async function completeTask(val, buttonEl) {
-// --- FUNÇÃO DE TAREFA COM MONETAG + TEMPORIZADOR DE 10S ---
-async function completeTask(val, buttonEl) {
     if (!buttonEl) return;
 
-    // 1. Pega os dados do utilizador logado
     const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
     if (!storageData) return toast("⚠️ Faça login primeiro!");
     
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
 
-    // 2. Link Direto do Monetag (conforme solicitado)
     const monetagLink = "https://otieu.com/4/10483033";
-
-    // 3. Estética inicial do botão
-    const textoOriginal = buttonEl.innerText;
-    buttonEl.innerText = "A ABRIR ANÚNCIO...";
-    buttonEl.style.background = "#2980b9";
-
-    // 4. Abre o Monetag numa nova aba
-    const win = window.open(monetagLink, '_blank');
     
-    if (!win) {
-        toast("⚠️ Ative os Pop-ups para abrir a tarefa!");
-        buttonEl.innerText = textoOriginal;
-        return;
-    }
+    // Abre o anúncio
+    const win = window.open(monetagLink, '_blank');
+    if (!win) return toast("⚠️ Ative os Pop-ups!");
 
-    // 5. Inicia contagem de 10 segundos
+    // Inicia cronômetro
     let tempo = 10;
     buttonEl.disabled = true;
     buttonEl.style.background = "#555";
-    buttonEl.style.cursor = "not-allowed";
 
     const contador = setInterval(async () => {
         tempo--;
@@ -446,30 +431,25 @@ async function completeTask(val, buttonEl) {
 
         if (tempo <= 0) {
             clearInterval(contador);
-            buttonEl.innerText = "A PROCESSAR...";
+            buttonEl.innerText = "VALIDANDO...";
 
-            // 6. Chama o seu servidor para creditar o valor
             try {
-                // Usando a rota de saldo que já configuramos no seu Render
                 const res = await fetch(`${API_URL}/api/postback-cpagrip?user_id=${userId}`);
                 const status = await res.text();
 
                 if (status === "OK") {
-                    buttonEl.innerText = "CONCLUÍDO ✅";
+                    toast("✅ +250 Kz recebidos!");
+                    buttonEl.innerText = "CONCLUÍDO";
                     buttonEl.style.background = "#27ae60";
-                    buttonEl.onclick = null; // Impede duplo clique
-                    toast(`✅ Sucesso! +${val} Kz creditados.`);
-                    sincronizarDados(); // Atualiza saldo na tela
+                    sincronizarDados();
                 } else {
-                    toast("❌ Erro ao validar saldo.");
+                    toast("❌ Erro ao validar.");
                     buttonEl.disabled = false;
                     buttonEl.innerText = "TENTAR NOVAMENTE";
-                    buttonEl.style.background = "#e74c3c";
                 }
             } catch (e) {
-                toast("❌ Erro de conexão.");
+                toast("Erro de conexão");
                 buttonEl.disabled = false;
-                buttonEl.innerText = "TENTAR NOVAMENTE";
             }
         }
     }, 1000);
