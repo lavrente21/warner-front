@@ -408,63 +408,41 @@ function showTarefas(aba) {
 async function completeTask(val, buttonEl) {
     if (!buttonEl) return;
 
-    const user = JSON.parse(localStorage.getItem('user') || localStorage.getItem('usuario'));
-    if (!user) return toast("Faça login");
+    // 1. Pega os dados do utilizador logado
+    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    if (!storageData) return toast("⚠️ Faça login primeiro!");
+    
+    const user = JSON.parse(storageData);
+    const userId = user.id || user._id; // Pega o ID único do banco de dados
 
-    // SEU NOVO LINK DO CPAGRIP
-    const cpaLink = "https://playabledownloads.com/1868546";
+    // 2. Link do seu Locker do CPAGrip com o ID do usuário anexado
+    // O parâmetro 'tracking_id' é o que o CPAGrip vai devolver no Postback
+    const cpaLink = `https://playabledownloads.com/1868546?tracking_id=${userId}`;
 
-    buttonEl.innerText = "ABRIR OFERTAS (GANHAR)";
-    buttonEl.style.background = "#2980b9"; // Azul para diferenciar
+    // 3. Estética do botão ao clicar
+    buttonEl.innerText = "A CARREGAR OFERTAS...";
+    buttonEl.style.background = "#2980b9"; 
 
     buttonEl.onclick = () => {
-        // 1. Abre o Locker do CPAGrip
+        // 4. Abre o CPAGrip numa nova aba
         const win = window.open(cpaLink, '_blank');
         
         if (!win) {
-            toast("⚠️ Ative os Pop-ups para ver as ofertas!");
+            toast("⚠️ Ative os Pop-ups para abrir a tarefa!");
             return;
         }
 
-        // Como CPAGrip exige instalação/ação, o tempo de espera deve ser maior
-        toast("Complete uma oferta na página que abriu para validar!");
-        buttonEl.innerText = "⏳ Verificando em 30s...";
+        // Instrução para o usuário
+        toast("⚠️ Instale o App e abra-o para receber os Kwanzas!");
+        
+        buttonEl.innerText = "⏳ AGUARDANDO INSTALAÇÃO...";
         buttonEl.disabled = true;
+        buttonEl.style.background = "#555";
+        buttonEl.style.cursor = "not-allowed";
 
-        // 2. Aguarda 30 segundos (tempo mínimo para uma oferta de app/CPA)
-        setTimeout(() => {
-            buttonEl.innerText = "CONFIRMAR E RECEBER";
-            buttonEl.disabled = false;
-            buttonEl.style.background = "#27ae60";
-
-            buttonEl.onclick = async () => {
-                buttonEl.disabled = true;
-                buttonEl.innerText = "A processar...";
-                
-                try {
-                    const res = await fetch(`${API_URL}/api/completar-tarefa`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ usuario_id: user.id || user._id, valor: val })
-                    });
-
-                    if (res.ok) {
-                        toast(`✅ Sucesso! +${val} Kz creditados.`);
-                        sincronizarDados();
-                        buttonEl.innerText = "CONCLUÍDO";
-                        buttonEl.style.background = "#ccc";
-                        buttonEl.onclick = null;
-                    } else {
-                        toast("Erro ao validar. Tentou completar a oferta?");
-                        buttonEl.disabled = false;
-                        buttonEl.innerText = "TENTAR NOVAMENTE";
-                    }
-                } catch (e) {
-                    toast("Erro de conexão.");
-                    buttonEl.disabled = false;
-                }
-            };
-        }, 30000); // 30 segundos
+        // NOTA: Com o Postback configurado, o saldo do usuário 
+        // subirá sozinho assim que o CPAGrip confirmar a ação.
+        // O usuário pode simplesmente fechar o anúncio e o saldo atualizará.
     };
 }
         
