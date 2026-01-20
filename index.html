@@ -404,22 +404,21 @@ function showTarefas(aba) {
 }
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
-// --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
-// --- FUNÇÃO DE TAREFA COMPLETA (MONETAG + CONTROLE DIÁ
-            async function completeTask(val, buttonEl) {
+
+async function completeTask(val, buttonEl) {
     if (!buttonEl) return;
 
-    // Recupera os dados do usuário do armazenamento local
+    // Recupera os dados do utilizador corretamente
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if (!storageData) return toast("⚠️ Faça login primeiro!");
     
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
 
-    // Link do anúncio (Monetag)
+    // Abre o link do anúncio em nova aba
     const monetagLink = "https://otieu.com/4/10483033";
     const win = window.open(monetagLink, '_blank');
-    if (!win) return toast("⚠️ Ative os Pop-ups para prosseguir!");
+    if (!win) return toast("⚠️ Ative os Pop-ups!");
 
     let tempo = 10;
     buttonEl.disabled = true;
@@ -435,7 +434,7 @@ function showTarefas(aba) {
             buttonEl.innerText = "VALIDANDO...";
 
             try {
-                // Validação com o servidor
+                // Validação com o servidor backend
                 const res = await fetch(`${API_URL}/api/postback-cpagrip?user_id=${userId}`);
                 
                 if (res.ok) {
@@ -456,22 +455,21 @@ function showTarefas(aba) {
                         listaConcluidas.appendChild(card);
                     }
 
-                    // Atualiza o saldo na tela
+                    // Atualiza o saldo na interface
                     sincronizarDados();
                 } else {
-                    toast("❌ Erro ao validar a tarefa.");
+                    toast("❌ Erro ao validar.");
                     buttonEl.disabled = false;
                     buttonEl.innerText = "TENTAR NOVAMENTE";
                 }
             } catch (e) {
-                toast("Erro de conexão com o servidor");
+                toast("Erro de conexão");
                 buttonEl.disabled = false;
                 buttonEl.innerText = "TENTAR NOVAMENTE";
             }
         }
     }, 1000);
-            }
-
+        }
 
         // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
