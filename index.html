@@ -405,30 +405,27 @@ function showTarefas(aba) {
 
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
 // --- FUNÇÃO DE TAREFA COM ANÚNCIO CORRIGIDA ---
-// --- FUNÇÃO DE TAREFA COMPLETA (MONETAG + CONTROLE DIÁRIO) ---
-async function completeTask(val, buttonEl, taskId) {
-
-
-        // --- SUPORTE E IMAGENS ---
-async function enviarImagemSuporte(input) {
-    if (!input.files || !input.files[0]) return;
-    const user = JSON.parse(localStorage.getItem('usasync function completeTask(val, buttonEl) {
+// --- FUNÇÃO DE TAREFA COMPLETA (MONETAG + CONTROLE DIÁ
+            async function completeTask(val, buttonEl) {
     if (!buttonEl) return;
 
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    // Recupera os dados do usuário do armazenamento local
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if (!storageData) return toast("⚠️ Faça login primeiro!");
     
     const user = JSON.parse(storageData);
     const userId = user.id || user._id;
 
+    // Link do anúncio (Monetag)
     const monetagLink = "https://otieu.com/4/10483033";
     const win = window.open(monetagLink, '_blank');
-    if (!win) return toast("⚠️ Ative os Pop-ups!");
+    if (!win) return toast("⚠️ Ative os Pop-ups para prosseguir!");
 
     let tempo = 10;
     buttonEl.disabled = true;
     buttonEl.style.background = "#555";
 
+    // Inicia o contador de 10 segundos
     const contador = setInterval(async () => {
         tempo--;
         buttonEl.innerText = `AGUARDE ${tempo}s...`;
@@ -438,45 +435,47 @@ async function enviarImagemSuporte(input) {
             buttonEl.innerText = "VALIDANDO...";
 
             try {
+                // Validação com o servidor
                 const res = await fetch(`${API_URL}/api/postback-cpagrip?user_id=${userId}`);
-                const status = await res.text();
-
-                if (status === "OK") {
-                    toast("✅ +250 Kz recebidos!");
+                
+                if (res.ok) {
+                    toast(`✅ +${val} Kz recebidos!`);
                     
-                    // --- LÓGICA PARA MOVER PARA "CONCLUÍDO" ---
-                    const card = buttonEl.closest('.task-card'); // Encontra o card da tarefa
+                    // Atualiza o botão e move o card para a aba "Concluído"
+                    buttonEl.innerText = "CONCLUÍDO ✅";
+                    buttonEl.style.background = "#27ae60";
+                    buttonEl.onclick = null;
+
+                    const card = buttonEl.closest('.task-card');
                     const listaConcluidas = document.getElementById('tarefas-concluidas');
                     
                     if (card && listaConcluidas) {
-                        // 1. Muda o texto do botão no card
-                        buttonEl.innerText = "CONCLUÍDO ✅";
-                        buttonEl.style.background = "#27ae60";
-                        buttonEl.onclick = null; // Remove o evento de clique
-
-                        // 2. Limpa a mensagem "Nenhuma tarefa concluída" se for a primeira
                         if (listaConcluidas.innerText.includes("Nenhuma tarefa")) {
                             listaConcluidas.innerHTML = "";
                         }
-
-                        // 3. Move o card fisicamente para a outra div
                         listaConcluidas.appendChild(card);
                     }
 
+                    // Atualiza o saldo na tela
                     sincronizarDados();
                 } else {
-                    toast("❌ Erro ao validar.");
+                    toast("❌ Erro ao validar a tarefa.");
                     buttonEl.disabled = false;
                     buttonEl.innerText = "TENTAR NOVAMENTE";
                 }
             } catch (e) {
-                toast("Erro de conexão");
+                toast("Erro de conexão com o servidor");
                 buttonEl.disabled = false;
+                buttonEl.innerText = "TENTAR NOVAMENTE";
             }
         }
     }, 1000);
-}er') || localStorage.getItem('usuario'));
+            }
 
+
+        // --- SUPORTE E IMAGENS ---
+async function enviarImagemSuporte(input) {
+    if (!input.files || !input.files[0]) return;
     toast("Enviando foto...");
     const formData = new FormData();
     formData.append("image", input.files[0]);
