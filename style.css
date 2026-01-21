@@ -48,6 +48,12 @@
     font-weight: 400 !important; /* FORÇA ROBOTO E REMOVE NEGRITO DE TUDO */
 }
 
+/* --- CORREÇÃO PARA OS ÍCONES VOLTAREM A APARECER --- */
+.fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-brands {
+    font-family: "Font Awesome 6 Free", "Font Awesome 5 Free", "Font Awesome 6 Brands", sans-serif !important;
+    font-weight: 900 !important; /* Ícones precisam de peso para carregar o desenho */
+}
+
 body { 
     background-color: var(--bg-dark); 
     color: var(--text-white); 
