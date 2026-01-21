@@ -11,6 +11,13 @@
 .hidden {
     display: none !important;
 }
+.view {
+    min-height: 500px !important; /* Força a página a ter altura */
+    display: none;
+}
+.view:not(.hidden) {
+    display: block !important;
+}
 
 /* Garante que as páginas visíveis apareçam com as cores corretas */
 .view {
