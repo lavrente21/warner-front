@@ -672,14 +672,22 @@ async function finalizarDeposito() {
 }
 
 // --- UTILITÁRIOS ---
-function toast(msg) {
-    const t = document.createElement('div');
-    t.style = "position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); color:#fff; padding:12px 20px; border-radius:25px; font-size:12px; z-index:9999; text-align:center; min-width:200px;";
-    t.innerText = msg;
-    document.body.appendChild(t);
-    setTimeout(() => t.remove(), 2500);
-}
+function toast(msg, tipo = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return alert(msg); // Fallback
 
+    const t = document.createElement('div');
+    t.className = `toast ${tipo}`;
+    t.innerHTML = `<span>${msg}</span>`;
+    
+    container.appendChild(t);
+
+    // Remove após 3 segundos com efeito de fade
+    setTimeout(() => {
+        t.classList.add('toast-fade-out');
+        setTimeout(() => t.remove(), 500);
+    }, 3000);
+}
 function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 function copiarIBAN() { 
     const iban = document.getElementById('iban-txt');
