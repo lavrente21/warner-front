@@ -6,6 +6,25 @@ function toast(mensagem) {
     alert(mensagem); // Pode substituir por um elemento visual depois
 }
 
+function mostrarNotificacao(mensagem, tipo = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${tipo}`;
+    toast.innerHTML = `
+        <span>${mensagem}</span>
+    `;
+
+    container.appendChild(toast);
+
+    // Remover após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('toast-fade-out');
+        setTimeout(() => toast.remove(), 500);
+    }, 3000);
+}
+
 // --- LÓGICA DE REGISTRO (ATUALIZADA COM COLUNA DE CONVITE) ---
 async function registro() {
     const nome = document.getElementById('nome-registro').value;
