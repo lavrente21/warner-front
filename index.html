@@ -357,6 +357,30 @@ function showPage(id, el) {
 
     window.scrollTo(0, 0);
 }
+           async function carregarTarefas() {
+    // Busca o usuário do localStorage
+    const rawUser = localStorage.getItem('usuario') || localStorage.getItem('user');
+    
+    if (!rawUser) return; // Se não tem usuário, não faz nada
+
+    const user = JSON.parse(rawUser);
+    const userId = user.id; // Aqui o ID deve existir
+
+    if (!userId) {
+        console.error("ID do usuário não definido");
+        return;
+    }
+
+    try {
+        // Chamada correta para a API
+        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${userId}`);
+        const tarefas = await res.json();
+        
+        // Lógica para mostrar na tela...
+    } catch (err) {
+        console.error("Erro ao carregar:", err);
+    }
+           }
            
 // --- CONTROLE DAS ABAS DE TAREFAS ---
 function showTarefas(aba) {
