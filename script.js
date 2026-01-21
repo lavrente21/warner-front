@@ -2,8 +2,17 @@
 const API_URL = "https://warnermida-1.onrender.com"; // URL do seu Backend no Render
 
 // --- UTILITÁRIOS ---
-function toast(mensagem) {
-    alert(mensagem); // Pode substituir por um elemento visual depois
+function toast(msg) {
+    const t = document.createElement('div');
+    // Estilo inline para garantir que apareça sem depender de CSS externo
+    t.style = "position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:15px 25px; border-radius:10px; z-index:10000; font-weight:bold; border-left:5px solid gold; box-shadow:0 5px 15px rgba(0,0,0,0.3);";
+    t.innerText = msg;
+    document.body.appendChild(t);
+    setTimeout(() => {
+        t.style.opacity = '0';
+        t.style.transition = '0.5s';
+        setTimeout(() => t.remove(), 500);
+    }, 3000);
 }
 window.addEventListener('unhandledrejection', function(event) {
     // Silencia erros de performance de extensões/terceiros
