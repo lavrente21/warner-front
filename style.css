@@ -11,21 +11,38 @@
 .hidden {
     display: none !important;
 }
+/* --- CORREÇÃO DE VISIBILIDADE DAS PÁGINAS --- */
 .view {
-    min-height: 500px !important; /* Força a página a ter altura */
-    display: none;
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 80px;
+    background: #0a0e27; /* Cor de fundo escura */
+    color: white;
+    display: none; /* Escondido por padrão */
+    position: relative;
 }
+
+/* Mostra a página apenas quando NÃO tiver a classe .hidden */
 .view:not(.hidden) {
     display: block !important;
 }
 
-/* Garante que as páginas visíveis apareçam com as cores corretas */
-.view {
+/* Garante que os containers de listas apareçam */
+#container-vips-lista, #tarefas-nao-concluidas {
     width: 100%;
-    min-height: 100vh;
-    padding-bottom: 80px; /* Espaço para a nav-bar inferior */
-    background: #0a0e27; /* Cor de fundo padrão para todas as páginas */
-    color: white;
+    display: flex;
+    flex-direction: column;
+    min-height: 100px;
+}
+
+/* Estilo dos Cards (VIP e Tarefas) */
+.vip-card, .task-card {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 15px;
+    margin: 15px;
+    padding: 20px;
+    color: white !important;
 }
 
 /* Ajuste específico para os cards das outras páginas */
