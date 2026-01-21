@@ -525,14 +525,18 @@ async function sincronizarDados() {
         const user = JSON.parse(storageData);
         const userId = user.id;
 
+        // Adiciona um pequeno delay para redes lentas se necessário
         const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (resUser.ok) {
             const dadosNovos = await resUser.json();
             localStorage.setItem('usuario', JSON.stringify(dadosNovos));
             
-            // CORREÇÃO: parseFloat para garantir que o saldo seja exibido corretamente
-            if(document.getElementById('user-balance')) document.getElementById('user-balance').innerText = `${parseFloat(dadosNovos.saldo).toFixed(2)} Kz`;
-            if(document.getElementById('user-name')) document.getElementById('user-name').innerText = dadosNovos.nome;
+            // Atualiza Interface com segurança
+            const balanceEl = document.getElementById('user-balance');
+            if(balanceEl) balanceEl.innerText = `${parseFloat(dadosNovos.saldo).toFixed(2)} Kz`;
+            
+            const nameEl = document.getElementById('user-name');
+            if(nameEl) nameEl.innerText = dadosNovos.nome;
             
             const vipBadge = document.getElementById('user-vip');
             if(vipBadge) {
@@ -540,48 +544,49 @@ async function sincronizarDados() {
                 vipBadge.innerText = `VIP ${nivel}`;
                 vipBadge.style.background = nivel > 0 ? "gold" : "#00ff88";
             }
-
-            const linkEl = document.getElementById('link-convite');
-            if (linkEl && dadosNovos.referral_id) {
-                linkEl.innerText = `https://warnermidia.netlify.app/registro.html?ref=${dadosNovos.referral_id}`;
-            }
         }
-    } catch (err) { console.error("Erro ao sincronizar"); }
+    } catch (err) { 
+        console.log("Servidor ainda acordando..."); 
+    }
 }
-
 async function renderizarTarefasDoDia() {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
     const user = JSON.parse(storageData);
-    const userId = user.id;
-    const nivelVip = user.nivel_vip || 0;
     
-    try {
-        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${userId}`);
-        const tarefas = await res.json();
-        const container = document.getElementById('tarefas-nao-concluidas');
-        if(!container) return;
-        container.innerHTML = "";
+    const container = document.getElementById('tarefas-nao-concluidas');
+    if(!container) return;
 
-        if (tarefas.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:20px; color:white;'>Você já completou suas tarefas de hoje! Volte amanhã.</p>";
+    // Feedback visual enquanto a rede lenta carrega
+    container.innerHTML = "<p style='text-align:center; padding:20px; color:gray;'>Carregando tarefas (Rede Lenta)...</p>";
+
+    try {
+        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id}`);
+        const tarefas = await res.json();
+        
+        container.innerHTML = ""; // Só limpa quando os dados chegam
+
+        if (!tarefas || tarefas.length === 0) {
+            container.innerHTML = "<p style='text-align:center; padding:20px;'>Nenhuma tarefa disponível.</p>";
             return;
         }
 
         tarefas.forEach(t => {
             container.innerHTML += `
-                <div class="task-card" id="task-${t.id}">
-                    <div class="card-tag">VIP ${nivelVip}</div>
+                <div class="task-card">
+                    <div class="card-tag">Disponível</div>
                     <div class="card-main">
                         <div class="card-img"><i class="fa-brands fa-youtube" style="color:red; font-size:30px;"></i></div>
                         <div class="card-details">
-                            <div><p class="c-label">Recompensa</p><p class="c-val" style="color:#00ff88;">${t.recompensa} Kz</p></div>
+                            <div><p class="c-label">Ganhos</p><p class="c-val">${t.recompensa} Kz</p></div>
                         </div>
                     </div>
                     <button class="btn-action" onclick="completeTask(${t.recompensa}, this)">Ir para tarefa</button>
                 </div>`;
         });
-    } catch (e) { console.error("Erro ao carregar tarefas"); }
+    } catch (e) { 
+        container.innerHTML = "<p style='text-align:center; padding:20px;'>Erro de conexão. Verifique sua internet.</p>";
+    }
 }
 
 async function carregarPlanosVIP() {
