@@ -7,22 +7,23 @@
     --text-gray: #a0a0a0;
     --card-white: #ffffff;
 }
-/* Garante que as páginas escondidas sumam de fato */
+
+/* --- LÓGICA DE EXIBIÇÃO (ESSENCIAL PARA FUNCIONAR) --- */
 .hidden {
     display: none !important;
 }
-/* --- CORREÇÃO DE VISIBILIDADE DAS PÁGINAS --- */
+
 .view {
     width: 100%;
     min-height: 100vh;
     padding-bottom: 80px;
-    background: #0a0e27; /* Cor de fundo escura */
+    background: #0a0e27; 
     color: white;
-    display: none; /* Escondido por padrão */
+    display: none; /* Começam escondidas */
     position: relative;
 }
 
-/* Mostra a página apenas quando NÃO tiver a classe .hidden */
+/* Esta regra força a página a aparecer quando NÃO estiver com a classe hidden */
 .view:not(.hidden) {
     display: block !important;
 }
@@ -33,26 +34,6 @@
     display: flex;
     flex-direction: column;
     min-height: 100px;
-}
-
-/* Estilo dos Cards (VIP e Tarefas) */
-.vip-card, .task-card {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 15px;
-    margin: 15px;
-    padding: 20px;
-    color: white !important;
-}
-
-/* Ajuste específico para os cards das outras páginas */
-.vip-card, .task-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    margin: 15px;
-    padding: 15px;
-    display: block; /* Garante que o card tenha corpo */
 }
 
 /* --- RESET E ESTRUTURA GLOBAL --- */
@@ -77,8 +58,6 @@ body {
     padding-bottom: 90px; 
     position: relative; 
 }
-
-.hidden { display: none !important; }
 
 /* --- COMPONENTES DE NOTIFICAÇÃO (TOAST) --- */
 .toast-container {
@@ -214,13 +193,16 @@ header {
 }
 
 /* --- CARDS (TAREFAS / VIP / NÍVEL) --- */
+/* Forçamos o fundo branco e texto escuro para os cards aparecerem bem */
 .task-card, .vip-card, .level-card { 
-    background: #fff; 
-    color: #000; 
+    background: #ffffff !important;
+    color: #000000 !important;
     margin: 15px; 
-    padding: 15px; 
+    padding: 20px; 
     border-radius: 15px; 
     position: relative; 
+    display: block !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
 .card-tag { 
@@ -257,8 +239,8 @@ header {
     font-size: 11px; 
 }
 
-.c-label { color: #888; margin-bottom: 2px; }
-.c-val { color: #333; font-weight: 500; }
+.c-label { color: #888 !important; margin-bottom: 2px; }
+.c-val { color: #333 !important; font-weight: 500; }
 
 .btn-action { 
     width: 100%; 
