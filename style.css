@@ -1,3 +1,4 @@
+/* --- VARIÁVEIS E TEMA --- */
 :root {
     --primary-purple: #6a3ab2;
     --bg-dark: #0f0a1e;
@@ -5,19 +6,34 @@
     --text-white: #ffffff;
     --text-gray: #a0a0a0;
     --card-white: #ffffff;
-  }
-.banner-placeholder { 
-    margin: 15px; 
-    height: 160px; 
-    background-color: #2a1b4d; 
-    border-radius: 15px; 
-    /* Adicionando o GIF */
-    background-image: url('banner.gif'); 
-    background-size: cover; 
-    background-position: center;
-    background-repeat: no-repeat;
 }
 
+/* --- RESET E ESTRUTURA GLOBAL --- */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Roboto', sans-serif; 
+}
+
+body { 
+    background-color: var(--bg-dark); 
+    color: var(--text-white); 
+    overflow-x: hidden; 
+}
+
+#app { 
+    width: 100%; 
+    max-width: 450px; 
+    min-height: 100vh; 
+    margin: 0 auto; 
+    padding-bottom: 90px; 
+    position: relative; 
+}
+
+.hidden { display: none !important; }
+
+/* --- COMPONENTES DE NOTIFICAÇÃO (TOAST) --- */
 .toast-container {
     position: fixed;
     top: 20px;
@@ -39,7 +55,7 @@
     align-items: center;
     justify-content: space-between;
     animation: slideIn 0.3s ease-out;
-    border-left: 5px solid #ffcc00; /* Cor padrão */
+    border-left: 5px solid #ffcc00;
 }
 
 .toast.success { border-left-color: #2ecc71; }
@@ -55,6 +71,343 @@
     opacity: 0;
     transition: opacity 0.5s ease;
 }
+
+/* --- HEADER --- */
+header { 
+    padding: 15px 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    background: var(--primary-purple); 
+}
+
+.brand { display: flex; align-items: center; gap: 8px; }
+
+.logo-circle { 
+    width: 28px; 
+    height: 28px; 
+    border: 1px solid #fff; 
+    border-radius: 50%; 
+    display: grid; 
+    place-items: center; 
+    font-size: 14px; 
+}
+
+.top-icons { display: flex; gap: 15px; align-items: center; }
+
+.lang-selector { 
+    border: 1px solid rgba(255,255,255,0.4); 
+    padding: 4px 10px; 
+    border-radius: 20px; 
+    font-size: 11px; 
+    display: flex; 
+    align-items: center; 
+    gap: 5px; 
+}
+
+/* --- BANNER E HOME --- */
+.banner-placeholder { 
+    margin: 15px; 
+    height: 160px; 
+    background-color: #2a1b4d; 
+    border-radius: 15px; 
+    background-image: url('banner.gif'); 
+    background-size: cover; 
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.grid-home { 
+    display: grid; 
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 10px; 
+    padding: 0 15px 15px; 
+}
+
+.grid-item { 
+    background: rgba(255,255,255,0.05); 
+    border-radius: 12px; 
+    padding: 15px 5px; 
+    text-align: center; 
+    font-size: 11px; 
+    cursor: pointer; 
+}
+
+.grid-item i { 
+    display: block; 
+    font-size: 22px; 
+    margin-bottom: 8px; 
+    color: #fff; 
+}
+
+/* --- TAREFAS E ABAS --- */
+.task-tabs { display: flex; background: #fff; border-bottom: 1px solid #eee; }
+
+.task-tab-btn { 
+    flex: 1; 
+    padding: 15px; 
+    border: none; 
+    background: none; 
+    font-size: 13px; 
+    color: #666; 
+    cursor: pointer; 
+    position: relative; 
+}
+
+.task-tab-btn.active { color: var(--primary-purple); font-weight: 600; }
+
+.task-tab-btn.active::after { 
+    content: ''; 
+    position: absolute; 
+    bottom: 0; 
+    left: 25%; 
+    width: 50%; 
+    height: 2px; 
+    background: var(--primary-purple); 
+}
+
+/* --- CARDS (TAREFAS / VIP / NÍVEL) --- */
+.task-card, .vip-card, .level-card { 
+    background: #fff; 
+    color: #000; 
+    margin: 15px; 
+    padding: 15px; 
+    border-radius: 15px; 
+    position: relative; 
+}
+
+.card-tag { 
+    position: absolute; 
+    top: 0; 
+    right: 0; 
+    background: #eab308; 
+    color: #000; 
+    padding: 3px 12px; 
+    border-bottom-left-radius: 10px; 
+    border-top-right-radius: 15px; 
+    font-size: 10px; 
+}
+
+.card-main { display: flex; gap: 15px; align-items: center; }
+
+.card-img { 
+    width: 65px; 
+    height: 65px; 
+    background: #064e3b; 
+    border-radius: 10px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    color: #fff; 
+    font-size: 24px; 
+}
+
+.card-details { 
+    flex: 1; 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 10px; 
+    font-size: 11px; 
+}
+
+.c-label { color: #888; margin-bottom: 2px; }
+.c-val { color: #333; font-weight: 500; }
+
+.btn-action { 
+    width: 100%; 
+    background: #222; 
+    color: #fff; 
+    border: none; 
+    border-radius: 20px; 
+    padding: 10px; 
+    margin-top: 15px; 
+    font-size: 12px; 
+    cursor: pointer; 
+}
+
+/* --- EQUIPE --- */
+.team-overview { 
+    background: linear-gradient(135deg, #6a3ab2, #3a1b7e); 
+    padding: 25px 20px; 
+    text-align: center; 
+    border-bottom-left-radius: 30px; 
+    border-bottom-right-radius: 30px; 
+}
+
+.stat-box { 
+    background: rgba(255,255,255,0.1); 
+    padding: 15px; 
+    border-radius: 15px; 
+    flex: 1; 
+}
+
+.invite-box { 
+    background: #fff; 
+    color: #333; 
+    margin: 15px; 
+    padding: 20px; 
+    border-radius: 15px; 
+}
+
+.code-display { 
+    display: flex; 
+    justify-content: space-between; 
+    background: #f0f0f0; 
+    padding: 12px; 
+    border-radius: 10px; 
+    margin: 10px 0; 
+    font-weight: 600; 
+}
+
+/* --- FINANCEIRO --- */
+.page-finance { background: #f8f9fa; min-height: 100vh; color: #333; }
+
+.finance-header { 
+    background: var(--primary-purple); 
+    color: #fff; 
+    padding: 15px 20px; 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    margin-bottom: 20px;
+}
+
+.finance-body { padding: 20px; }
+
+.input-group { margin-bottom: 15px; }
+
+.input-group label { 
+    display: block; 
+    font-size: 11px; 
+    color: #888; 
+    margin-bottom: 5px; 
+}
+
+.input-group input { 
+    width: 100%; 
+    padding: 12px; 
+    border: 1px solid #ddd; 
+    border-radius: 8px; 
+    outline: none; 
+}
+
+.btn-confirm { 
+    width: 100%; 
+    padding: 15px; 
+    background: var(--primary-purple); 
+    color: #fff; 
+    border: none; 
+    border-radius: 30px; 
+    font-weight: 500; 
+    cursor: pointer; 
+}
+
+/* --- PÁGINA PERFIL (MEU) --- */
+.meu-balance-area { 
+    background: var(--primary-purple); 
+    padding: 40px 20px; 
+    text-align: center; 
+}
+
+.meu-user-stripe { 
+    background: var(--accent-green); 
+    color: #000; 
+    padding: 12px 20px; 
+    border-radius: 10px; 
+    margin: -20px 15px 20px; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    font-size: 13px; 
+    font-weight: 500; 
+}
+
+.meu-menu-white { 
+    background: #fff; 
+    border-radius: 20px; 
+    margin: 0 15px; 
+    overflow: hidden; 
+}
+
+.meu-menu-row { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 15px 20px; 
+    color: #333; 
+    border-bottom: 1px solid #f0f0f0; 
+    cursor: pointer; 
+}
+
+/* --- NAVEGAÇÃO INFERIOR --- */
+.bottom-nav { 
+    position: fixed; 
+    bottom: 0; 
+    width: 100%; 
+    max-width: 450px; 
+    background: #151515; 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 10px 0 25px; 
+    border-top: 1px solid #222; 
+    z-index: 1000;
+}
+
+.nav-tab { 
+    text-align: center; 
+    color: #777; 
+    font-size: 10px; 
+    flex: 1; 
+    cursor: pointer; 
+}
+
+.nav-tab.active { color: #fff; }
+.nav-tab i { display: block; font-size: 18px; margin-bottom: 4px; }
+
+/* --- SUPORTE / CHAT --- */
+.chat-container { display: flex; flex-direction: column; height: 100%; }
+
+.chat-messages { 
+    flex-grow: 1; 
+    overflow-y: auto; 
+    padding: 10px; 
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-input { 
+    display: flex; 
+    align-items: center; 
+    padding: 10px; 
+    border-top: 1px solid #ddd; 
+    background: #fff;
+}
+
+.chat-input input { 
+    flex-grow: 1; 
+    padding: 10px; 
+    border: 1px solid #ddd; 
+    border-radius: 10px; 
+    margin-right: 10px; 
+}
+
+.btn-send { 
+    background-color: var(--primary-purple); 
+    color: #fff; 
+    border: none; 
+    padding: 10px; 
+    border-radius: 10px; 
+    cursor: pointer; 
+}
+
+.mensagem { display: flex; margin-bottom: 10px; }
+
+.mensagem .conteudo { 
+    padding: 10px; 
+    border-radius: 10px; 
+    max-width: 80%; 
+    font-size: 13px;
+}
+
 .mensagem img {
     max-width: 200px;
     border-radius: 10px;
@@ -62,128 +415,17 @@
     margin-top: 5px;
     display: block;
 }
-  
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
-  body { background-color: var(--bg-dark); color: var(--text-white); overflow-x: hidden; }
-  #app { width: 100%; max-width: 450px; min-height: 100vh; margin: 0 auto; padding-bottom: 90px; position: relative; }
-  .finance-header {
-    margin-bottom: 20px;
+
+.mensagem.enviada .conteudo { 
+    background-color: var(--primary-purple); 
+    color: #fff; 
+    margin-left: auto; 
+    border-radius: 12px 12px 0 12px;
 }
-  /* Header */
-  header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: var(--primary-purple); }
-  .brand { display: flex; align-items: center; gap: 8px; }
-  .logo-circle { width: 28px; height: 28px; border: 1px solid #fff; border-radius: 50%; display: grid; place-items: center; font-size: 14px; }
-  .top-icons { display: flex; gap: 15px; align-items: center; }
-  .lang-selector { border: 1px solid rgba(255,255,255,0.4); padding: 4px 10px; border-radius: 20px; font-size: 11px; display: flex; align-items: center; gap: 5px; }
-  
-  /* Banner & Grid Home */
-  .banner-placeholder { margin: 15px; height: 160px; background: #2a1b4d; border-radius: 15px; background-image: linear-gradient(45deg, #6a3ab2 25%, #7b4ccb 25%, #7b4ccb 50%, #6a3ab2 50%, #6a3ab2 75%, #7b4ccb 75%, #7b4ccb 100%); background-size: 40px 40px; }
-  .grid-home { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 15px 15px; }
-  .grid-item { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px 5px; text-align: center; font-size: 11px; cursor: pointer; }
-  .grid-item i { display: block; font-size: 22px; margin-bottom: 8px; color: #fff; }
-  
-  /* Task Tabs */
-  .task-tabs { display: flex; background: #fff; border-bottom: 1px solid #eee; }
-  .task-tab-btn { flex: 1; padding: 15px; border: none; background: none; font-size: 13px; color: #666; cursor: pointer; position: relative; }
-  .task-tab-btn.active { color: var(--primary-purple); font-weight: 600; }
-  .task-tab-btn.active::after { content: ''; position: absolute; bottom: 0; left: 25%; width: 50%; height: 2px; background: var(--primary-purple); }
-  
-  /* Cards */
-  .task-card, .vip-card, .level-card { background: #fff; color: #000; margin: 15px; padding: 15px; border-radius: 15px; position: relative; }
-  .card-tag { position: absolute; top: 0; right: 0; background: #eab308; color: #000; padding: 3px 12px; border-bottom-left-radius: 10px; border-top-right-radius: 15px; font-size: 10px; }
-  .card-main { display: flex; gap: 15px; align-items: center; }
-  .card-img { width: 65px; height: 65px; background: #064e3b; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 24px; }
-  .card-details { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 11px; }
-  .c-label { color: #888; margin-bottom: 2px; }
-  .c-val { color: #333; font-weight: 500; }
-  .btn-action { width: 100%; background: #222; color: #fff; border: none; border-radius: 20px; padding: 10px; margin-top: 15px; font-size: 12px; cursor: pointer; }
-  
-  /* Equipe Section */
-  .team-overview { background: linear-gradient(135deg, #6a3ab2, #3a1b7e); padding: 25px 20px; text-align: center; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; }
-  .stat-box { background: rgba(255,255,255,0.1); padding: 15px; border-radius: 15px; flex: 1; }
-  .invite-box { background: #fff; color: #333; margin: 15px; padding: 20px; border-radius: 15px; }
-  .code-display { display: flex; justify-content: space-between; background: #f0f0f0; padding: 12px; border-radius: 10px; margin: 10px 0; font-weight: 600; }
-  
-  /* Finance Pages */
-  .page-finance { background: #f8f9fa; min-height: 100vh; color: #333; }
-  .finance-header { background: var(--primary-purple); color: #fff; padding: 15px 20px; display: flex; align-items: center; gap: 15px; }
-  .finance-body { padding: 20px; }
-  .input-group { margin-bottom: 15px; }
-  .input-group label { display: block; font-size: 11px; color: #888; margin-bottom: 5px; }
-  .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; outline: none; }
-  .btn-confirm { width: 100%; padding: 15px; background: var(--primary-purple); color: #fff; border: none; border-radius: 30px; font-weight: 500; cursor: pointer; }
-  
-  /* Meu Page */
-  .meu-balance-area { background: var(--primary-purple); padding: 40px 20px; text-align: center; }
-  .meu-user-stripe { background: var(--accent-green); color: #000; padding: 12px 20px; border-radius: 10px; margin: -20px 15px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; }
-  .meu-menu-white { background: #fff; border-radius: 20px; margin: 0 15px; overflow: hidden; }
-  .meu-menu-row { display: flex; justify-content: space-between; padding: 15px 20px; color: #333; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
-  
-  /* Nav */
-  .bottom-nav { position: fixed; bottom: 0; width: 100%; max-width: 450px; background: #151515; display: flex; justify-content: space-around; padding: 10px 0 25px; border-top: 1px solid #222; }
-  .nav-tab { text-align: center; color: #777; font-size: 10px; flex: 1; cursor: pointer; }
-  .nav-tab.active { color: #fff; }
-  .nav-tab i { display: block; font-size: 18px; margin-bottom: 4px; }
-  
-  .hidden { display: none; }
-  
-  /* Chat */
-  .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-  
-  .chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 10px;
-  }
-  
-  .chat-input {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border-top: 1px solid #ddd;
-  }
-  
-  .chat-input input {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    margin-right: 10px;
-  }
-  
-  .btn-send {
-    background-color: #6a3ab2;
-    color: #fff;
-    border: none;
-    padding: 10px;
-    border-radius: 10px;
-    cursor: pointer;
-  }
-  
-  .mensagem {
-    display: flex;
-    margin-bottom: 10px;
-  }
-  
-  .mensagem .conteudo {
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 10px;
-    max-width: 80%;
-  }
-  
-  .mensagem.enviada .conteudo {
-    background-color: #6a3ab2;
-    color: #fff;
-    margin-left: auto;
-  }
-  
-  .mensagem.recebida .conteudo {
-    background-color: #f0f0f0;
-    color: #333;
-    margin-right: auto;
-  }
+
+.mensagem.recebida .conteudo { 
+    background-color: #f0f0f0; 
+    color: #333; 
+    margin-right: auto; 
+    border-radius: 12px 12px 12px 0;
+}
