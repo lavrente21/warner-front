@@ -5,7 +5,14 @@ const API_URL = "https://warnermida-1.onrender.com"; // URL do seu Backend no Re
 function toast(mensagem) {
     alert(mensagem); // Pode substituir por um elemento visual depois
 }
-
+window.addEventListener('unhandledrejection', function(event) {
+    // Silencia erros de performance de extensões/terceiros
+    if (event.reason && event.reason.message.includes('Performance')) {
+        event.preventDefault();
+        return;
+    }
+    console.warn('Promessa rejeitada não tratada:', event.reason);
+});
 function mostrarNotificacao(mensagem, tipo = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
