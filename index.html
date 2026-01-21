@@ -572,6 +572,25 @@ async function sincronizarDados() {
         console.log("Servidor ainda acordando..."); 
     }
 }
+           function realizarTarefa(tarefaId) {
+    console.log("Invocando tarefa ID:", tarefaId);
+
+    // Proteção contra o erro 'Attempt to invoke virtual method'
+    if (typeof Android !== 'undefined' && Android !== null) {
+        try {
+            // Se o seu app Android tem uma função para mostrar vídeo ou vibrar
+            Android.iniciarTarefa(tarefaId); 
+        } catch (e) {
+            console.error("Erro ao chamar método Android:", e);
+            // Se o método Android falhar, fazemos pelo navegador mesmo:
+            finalizarTarefaNoServidor(tarefaId);
+        }
+    } else {
+        // Se NÃO estiver no Android (ex: teste no Chrome), ele não crasha:
+        console.warn("Interface Android não detectada. Usando fallback...");
+        finalizarTarefaNoServidor(tarefaId);
+    }
+           }
 async function renderizarTarefasDoDia() {
     const container = document.getElementById('tarefas-nao-concluidas');
     if (!container) return;
