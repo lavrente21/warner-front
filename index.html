@@ -37,26 +37,24 @@
         </p>
     </div>
 
-    <div class="banner-placeholder" style="background: none; margin: 0 15px;">
-      <img src="banner.gif" alt="Banner" style="width: 100%; height: auto; border-radius: 15px; display: block; object-fit: contain;">
+      <div class="banner-placeholder" style="background: none; margin: 0 15px;">
+        <img src="banner.gif" alt="Banner" style="width: 100%; height: auto; border-radius: 15px; object-fit: cover;">
+    </div><div class="grid-home">
+    <div class="grid-item" onclick="showPage('pg-recarga')">
+        <i class="fa-solid fa-building-columns"></i>
+        <span>Recarga</span>
     </div>
 
-    <div class="grid-home" style="margin: 0 15px 20px 15px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; position: relative; top: 0;">
-        <div class="grid-item" onclick="showPage('pg-recarga')" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; text-align: center;">
-            <i class="fa-solid fa-building-columns" style="color: #00ff88; font-size: 20px; display: block; margin-bottom: 5px;"></i>
-            <span style="font-size: 12px; color: white;">Recarga</span>
-        </div>
-
-        <div class="grid-item" onclick="showPage('pg-retirar')" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; text-align: center;">
-            <i class="fa-solid fa-hand-holding-dollar" style="color: #00ff88; font-size: 20px; display: block; margin-bottom: 5px;"></i>
-            <span style="font-size: 12px; color: white;">Retirar</span>
-        </div>
-
-        <div class="grid-item" onclick="showPage('pg-equipe')" style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; text-align: center;">
-            <i class="fa-solid fa-users" style="color: #00ff88; font-size: 20px; display: block; margin-bottom: 5px;"></i>
-            <span style="font-size: 12px; color: white;">Equipe</span>
-        </div>
+    <div class="grid-item" onclick="showPage('pg-retirar')">
+        <i class="fa-solid fa-hand-holding-dollar"></i>
+        <span>Retirar</span>
     </div>
+
+    <div class="grid-item" onclick="showPage('pg-equipe')">
+        <i class="fa-solid fa-users"></i>
+        <span>Equipe</span>
+    </div>
+</div>
 <div class="task-card">
     <div class="card-tag">VIP1</div>
     <div class="card-main">
