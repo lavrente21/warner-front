@@ -319,13 +319,12 @@
 </nav>
 </div>
 <div id="toast-container" class="toast-container"></div>
-        <script>
+       <script>
 const API_URL = "https://warnermida-1.onrender.com";
 const IMGBB_KEY = "f1cbde38d1820926fd47faeb3e74975f";
 
 // --- GESTÃO DE NAVEGAÇÃO E ANÚNCIOS ---
 function showPage(id, el) {
-    // Esconde todas as visualizações
     document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
     
     const target = document.getElementById(id);
@@ -333,16 +332,13 @@ function showPage(id, el) {
         target.classList.remove('hidden');
     }
 
-    // Controle do Header Principal
     const header = document.getElementById('main-header');
-    // Lista de IDs que DEVEM mostrar o header azul principal
     const mains = ['pg-lar', 'pg-tarefa', 'pg-meu', 'pg-vip', 'pg-equipe'];
     
     if(header) {
         header.style.display = mains.includes(id) ? 'flex' : 'none';
     }
 
-    // Gerenciamento de classes ativas na Nav
     if(el) {
         document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
@@ -350,10 +346,10 @@ function showPage(id, el) {
     
     window.scrollTo(0,0);
 
-    // Gatilhos de carregamento
     if(id === 'pg-vip') carregarPlanosVIP();
     if(id === 'pg-tarefa') renderizarTarefasDoDia();
     if(id === 'pg-meu') sincronizarDados();
+    if(id === 'pg-equipe') sincronizarDados();
 }
 
 // --- CONTROLE DAS ABAS DE TAREFAS ---
@@ -383,7 +379,8 @@ async function completeTask(val, buttonEl) {
     if (!storageData) return toast("⚠️ Faça login primeiro!");
     
     const user = JSON.parse(storageData);
-    const userId = user.id || user._id;
+    // CORREÇÃO: Usando apenas .id conforme seu log
+    const userId = user.id; 
 
     const monetagLink = "https://otieu.com/4/10483033";
     const win = window.open(monetagLink, '_blank');
@@ -437,7 +434,7 @@ async function completeTask(val, buttonEl) {
 async function enviarImagemSuporte(input) {
     if (!input.files || !input.files[0]) return;
     
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return toast("Sessão expirada");
     const user = JSON.parse(storageData);
 
@@ -454,7 +451,7 @@ async function enviarImagemSuporte(input) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    usuario_id: user.id || user._id, 
+                    usuario_id: user.id, 
                     enviado_por: 'usuario', 
                     mensagem: `<img src="${dataImg.data.url}" style="max-width:200px; border-radius:10px;">` 
                 })
@@ -467,10 +464,10 @@ async function enviarImagemSuporte(input) {
 }
 
 async function carregarHistoricoSuporte() {
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
     const user = JSON.parse(storageData);
-    const userId = user.id || user._id;
+    const userId = user.id;
 
     try {
         const res = await fetch(`${API_URL}/api/suporte/historico/${userId}`);
@@ -499,7 +496,7 @@ async function enviarMensagemSuporte() {
     const input = document.getElementById('mensagem-suporte');
     if(!input) return;
     const msg = input.value.trim();
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if (!msg || !storageData) return;
     const user = JSON.parse(storageData);
 
@@ -507,7 +504,7 @@ async function enviarMensagemSuporte() {
         const res = await fetch(`${API_URL}/api/suporte/enviar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id || user._id, enviado_por: 'usuario', mensagem: msg })
+            body: JSON.stringify({ usuario_id: user.id, enviado_por: 'usuario', mensagem: msg })
         });
         if (res.ok) { input.value = ""; carregarHistoricoSuporte(); }
     } catch (err) { toast("Erro ao enviar."); }
@@ -515,17 +512,18 @@ async function enviarMensagemSuporte() {
 
 async function sincronizarDados() {
     try {
-        const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+        const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
         if (!storageData) return;
         const user = JSON.parse(storageData);
-        const userId = user.id || user._id;
+        const userId = user.id;
 
         const resUser = await fetch(`${API_URL}/api/usuario/${userId}`);
         if (resUser.ok) {
             const dadosNovos = await resUser.json();
             localStorage.setItem('usuario', JSON.stringify(dadosNovos));
             
-            if(document.getElementById('user-balance')) document.getElementById('user-balance').innerText = `${dadosNovos.saldo} Kz`;
+            // CORREÇÃO: parseFloat para garantir que o saldo seja exibido corretamente
+            if(document.getElementById('user-balance')) document.getElementById('user-balance').innerText = `${parseFloat(dadosNovos.saldo).toFixed(2)} Kz`;
             if(document.getElementById('user-name')) document.getElementById('user-name').innerText = dadosNovos.nome;
             
             const vipBadge = document.getElementById('user-vip');
@@ -547,17 +545,18 @@ async function renderizarTarefasDoDia() {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
     const user = JSON.parse(storageData);
+    const userId = user.id;
     const nivelVip = user.nivel_vip || 0;
     
     try {
-        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id || user._id}`);
+        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${userId}`);
         const tarefas = await res.json();
         const container = document.getElementById('tarefas-nao-concluidas');
         if(!container) return;
         container.innerHTML = "";
 
         if (tarefas.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:20px;'>Você já completou suas tarefas de hoje! Volte amanhã.</p>";
+            container.innerHTML = "<p style='text-align:center; padding:20px; color:white;'>Você já completou suas tarefas de hoje! Volte amanhã.</p>";
             return;
         }
 
@@ -566,9 +565,9 @@ async function renderizarTarefasDoDia() {
                 <div class="task-card" id="task-${t.id}">
                     <div class="card-tag">VIP ${nivelVip}</div>
                     <div class="card-main">
-                        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
+                        <div class="card-img"><i class="fa-brands fa-youtube" style="color:red; font-size:30px;"></i></div>
                         <div class="card-details">
-                            <div><p class="c-label">Recompensa</p><p class="c-val">${t.recompensa} Kz</p></div>
+                            <div><p class="c-label">Recompensa</p><p class="c-val" style="color:#00ff88;">${t.recompensa} Kz</p></div>
                         </div>
                     </div>
                     <button class="btn-action" onclick="completeTask(${t.recompensa}, this)">Ir para tarefa</button>
@@ -587,26 +586,26 @@ async function carregarPlanosVIP() {
 
         planos.forEach(p => {
             container.innerHTML += `
-                <div class="vip-card" style="margin-bottom: 20px;">
-                    <div class="card-tag" style="background: gold; color: black;">${p.nome}</div>
-                    <div class="card-main" style="flex-direction: column; align-items: flex-start; padding: 15px;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px;">
-                            <span style="color: #eee;">Preço:</span>
-                            <b style="color: #fff;">${p.preco} Kz</b>
+                <div class="vip-card" style="margin: 15px; background: white; border-radius:15px; overflow:hidden;">
+                    <div class="card-tag" style="background: gold; color: black; padding:5px 10px; float:right; font-weight:bold;">${p.nome}</div>
+                    <div class="card-main" style="flex-direction: column; align-items: flex-start; padding: 20px;">
+                        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px;">
+                            <span style="color: #666;">Preço:</span>
+                            <b style="color: #333; font-size:18px;">${parseFloat(p.preco).toLocaleString()} Kz</b>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; font-size: 12px;">
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">Nível ${p.nivel}</div>
-                            <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px;">${p.qtd_tarefas} Tarefas</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; font-size: 13px;">
+                            <div style="background: #f4f4f4; color:#333; padding: 10px; border-radius: 8px; text-align:center;">Nível ${p.nivel}</div>
+                            <div style="background: #f4f4f4; color:#333; padding: 10px; border-radius: 8px; text-align:center;">${p.qtd_tarefas} Tarefas</div>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0 0 12px 12px;">Desbloquear</button>
+                    <button class="btn-confirm" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0; margin-top:0;">Desbloquear</button>
                 </div>`;
         });
     } catch (err) { console.error("Erro VIPs"); }
 }
 
 async function comprarVIP(nivel, preco) {
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return toast("⚠️ Faça login!");
     const user = JSON.parse(storageData);
     toast("Processando...");
@@ -614,7 +613,7 @@ async function comprarVIP(nivel, preco) {
         const res = await fetch(`${API_URL}/api/comprar-vip`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id || user._id, nivel_vip: nivel, valor_pago: preco })
+            body: JSON.stringify({ usuario_id: user.id, nivel_vip: nivel, valor_pago: preco })
         });
         const data = await res.json();
         if (!res.ok) return toast("❌ " + (data.error || "Erro"));
@@ -628,7 +627,7 @@ async function confirmarRetirada() {
     const iban = document.getElementById('iban-retirada').value;
     const titular = document.getElementById('nome-retirada').value;
     const senha = document.getElementById('senha-retirada').value;
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
     const user = JSON.parse(storageData);
 
@@ -639,7 +638,7 @@ async function confirmarRetirada() {
         const res = await fetch(`${API_URL}/api/levantamento`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id || user._id, valor: parseFloat(valor), iban, nome_titular: titular, senha })
+            body: JSON.stringify({ usuario_id: user.id, valor: parseFloat(valor), iban, nome_titular: titular, senha })
         });
         const data = await res.json();
         if (!res.ok) return toast("❌ " + (data.error || "Erro"));
@@ -652,7 +651,7 @@ async function confirmarRetirada() {
 async function finalizarDeposito() {
     const valorInput = document.getElementById('deposito-valor');
     const imgInput = document.getElementById('comprovativo-img');
-    const storageData = localStorage.getItem('user') || localStorage.getItem('usuario');
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
     const user = JSON.parse(storageData);
 
@@ -670,7 +669,7 @@ async function finalizarDeposito() {
             await fetch(`${API_URL}/api/deposito`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario_id: user.id || user._id, valor: valorInput.value, comprovativo: dataImg.data.url })
+                body: JSON.stringify({ usuario_id: user.id, valor: valorInput.value, comprovativo: dataImg.data.url })
             });
             toast("✅ Enviado para análise!");
             showPage('pg-lar');
@@ -681,7 +680,7 @@ async function finalizarDeposito() {
 // --- UTILITÁRIOS ---
 function toast(msg, tipo = 'info') {
     const container = document.getElementById('toast-container');
-    if (!container) return alert(msg); // Fallback
+    if (!container) return alert(msg); 
 
     const t = document.createElement('div');
     t.className = `toast ${tipo}`;
@@ -689,17 +688,19 @@ function toast(msg, tipo = 'info') {
     
     container.appendChild(t);
 
-    // Remove após 3 segundos com efeito de fade
     setTimeout(() => {
         t.classList.add('toast-fade-out');
         setTimeout(() => t.remove(), 500);
     }, 3000);
 }
+
 function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
 function copiarIBAN() { 
     const iban = document.getElementById('iban-txt');
     if(iban) { navigator.clipboard.writeText(iban.innerText); toast("IBAN copiado!"); }
 }
+
 function copiarLink() { 
     const link = document.getElementById('link-convite');
     if(link) { navigator.clipboard.writeText(link.innerText); toast("Link copiado!"); }
@@ -720,13 +721,14 @@ function voltarPasso1() {
     document.getElementById('deposito-step-2').classList.add('hidden');
     document.getElementById('deposito-step-1').classList.remove('hidden');
 }
-// Adicione um log para debug no início da carga
+
 window.addEventListener('load', () => {
     const rawUser = localStorage.getItem('usuario') || localStorage.getItem('user');
     if (!rawUser) {
         window.location.href = 'login.html';
     } else {
-        console.log("Usuário logado:", JSON.parse(rawUser));
+        const user = JSON.parse(rawUser);
+        console.log("Usuário logado:", user);
         showPage('pg-lar'); 
         sincronizarDados();
     }
