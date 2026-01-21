@@ -714,11 +714,13 @@ function voltarPasso1() {
     document.getElementById('deposito-step-2').classList.add('hidden');
     document.getElementById('deposito-step-1').classList.remove('hidden');
 }
-
 window.addEventListener('load', () => {
-    if (!(localStorage.getItem('user') || localStorage.getItem('usuario'))) {
+    const user = localStorage.getItem('user') || localStorage.getItem('usuario');
+    if (!user) {
         window.location.href = 'login.html';
     } else {
+        // ISSO GARANTE QUE A PÁGINA INICIAL APAREÇA
+        showPage('pg-lar'); 
         sincronizarDados();
     }
 });
