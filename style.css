@@ -7,6 +7,29 @@
     --text-gray: #a0a0a0;
     --card-white: #ffffff;
 }
+/* Garante que as páginas escondidas sumam de fato */
+.hidden {
+    display: none !important;
+}
+
+/* Garante que as páginas visíveis apareçam com as cores corretas */
+.view {
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 80px; /* Espaço para a nav-bar inferior */
+    background: #0a0e27; /* Cor de fundo padrão para todas as páginas */
+    color: white;
+}
+
+/* Ajuste específico para os cards das outras páginas */
+.vip-card, .task-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    margin: 15px;
+    padding: 15px;
+    display: block; /* Garante que o card tenha corpo */
+}
 
 /* --- RESET E ESTRUTURA GLOBAL --- */
 * { 
