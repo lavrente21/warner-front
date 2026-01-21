@@ -548,42 +548,47 @@ async function sincronizarDados() {
     }
 }
 async function renderizarTarefasDoDia() {
-    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
-    if(!storageData) return;
-    const user = JSON.parse(storageData);
-    
     const container = document.getElementById('tarefas-nao-concluidas');
-    if(!container) return;
+    if (!container) return;
 
-    // Feedback visual enquanto a rede lenta carrega
-    container.innerHTML = "<p style='text-align:center; padding:20px; color:gray;'>Carregando tarefas (Rede Lenta)...</p>";
+    // Mostra um aviso visual enquanto tenta carregar
+    container.innerHTML = "<p style='text-align:center; padding:20px;'>Carregando tarefas...</p>";
 
     try {
-        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id}`);
-        const tarefas = await res.json();
-        
-        container.innerHTML = ""; // Só limpa quando os dados chegam
+        const user = JSON.parse(localStorage.getItem('usuario'));
+        const nivel = user ? user.vip_nivel : 0;
 
-        if (!tarefas || tarefas.length === 0) {
-            container.innerHTML = "<p style='text-align:center; padding:20px;'>Nenhuma tarefa disponível.</p>";
+        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${nivel}`);
+        
+        if (!res.ok) {
+            // Se der 404, a página ainda vai aparecer, mas com este aviso:
+            container.innerHTML = `
+                <div style="padding:20px; text-align:center;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:30px; color:gold;"></i>
+                    <p>Nenhuma tarefa encontrada no servidor para o seu nível.</p>
+                </div>`;
             return;
         }
+
+        const tarefas = await res.json();
+        container.innerHTML = ""; 
 
         tarefas.forEach(t => {
             container.innerHTML += `
                 <div class="task-card">
-                    <div class="card-tag">Disponível</div>
                     <div class="card-main">
-                        <div class="card-img"><i class="fa-brands fa-youtube" style="color:red; font-size:30px;"></i></div>
+                        <div class="card-img"><i class="fa-brands fa-youtube"></i></div>
                         <div class="card-details">
-                            <div><p class="c-label">Ganhos</p><p class="c-val">${t.recompensa} Kz</p></div>
+                            <div><span class="c-label">Tarefa</span><br><span class="c-val">${t.nome}</span></div>
+                            <div><span class="c-label">Ganho</span><br><span class="c-val">${t.recompensa} Kz</span></div>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="completeTask(${t.recompensa}, this)">Ir para tarefa</button>
+                    <button class="btn-action" onclick="fazerTarefa(${t.id}, '${t.link}')">Realizar</button>
                 </div>`;
         });
-    } catch (e) { 
-        container.innerHTML = "<p style='text-align:center; padding:20px;'>Erro de conexão. Verifique sua internet.</p>";
+    } catch (err) {
+        console.error("Erro capturado:", err);
+        container.innerHTML = "<p style='text-align:center; padding:20px; color:red;'>Erro ao conectar com a API.</p>";
     }
 }
 
