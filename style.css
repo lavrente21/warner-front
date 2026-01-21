@@ -1,3 +1,14 @@
+/* --- 1. IMPORTAÇÃO E TIPOGRAFIA --- */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap');
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Roboto', sans-serif !important; 
+    font-weight: 400 !important; /* Remove o negrito global conforme solicitado */
+}
+
 /* --- VARIÁVEIS E TEMA --- */
 :root {
     --primary-purple: #6a3ab2;
@@ -8,7 +19,7 @@
     --card-white: #ffffff;
 }
 
-/* --- LÓGICA DE EXIBIÇÃO (ESSENCIAL PARA FUNCIONAR) --- */
+/* --- LÓGICA DE EXIBIÇÃO (CORREÇÃO PARA PÁGINAS APARECEREM) --- */
 .hidden {
     display: none !important;
 }
@@ -19,13 +30,14 @@
     padding-bottom: 80px;
     background: #0a0e27; 
     color: white;
-    display: none; /* Começam escondidas */
+    display: none; /* Escondido por padrão */
     position: relative;
 }
 
-/* Esta regra força a página a aparecer quando NÃO estiver com a classe hidden */
+/* Força a página a aparecer quando o JS remove a classe .hidden */
 .view:not(.hidden) {
     display: block !important;
+    visibility: visible !important;
 }
 
 /* Garante que os containers de listas apareçam */
@@ -36,14 +48,7 @@
     min-height: 100px;
 }
 
-/* --- RESET E ESTRUTURA GLOBAL --- */
-* { 
-    margin: 0; 
-    padding: 0; 
-    box-sizing: border-box; 
-    font-family: 'Roboto', sans-serif; 
-}
-
+/* --- ESTRUTURA GLOBAL --- */
 body { 
     background-color: var(--bg-dark); 
     color: var(--text-white); 
@@ -180,7 +185,7 @@ header {
     position: relative; 
 }
 
-.task-tab-btn.active { color: var(--primary-purple); font-weight: 600; }
+.task-tab-btn.active { color: var(--primary-purple); }
 
 .task-tab-btn.active::after { 
     content: ''; 
@@ -193,7 +198,6 @@ header {
 }
 
 /* --- CARDS (TAREFAS / VIP / NÍVEL) --- */
-/* Forçamos o fundo branco e texto escuro para os cards aparecerem bem */
 .task-card, .vip-card, .level-card { 
     background: #ffffff !important;
     color: #000000 !important;
@@ -240,7 +244,7 @@ header {
 }
 
 .c-label { color: #888 !important; margin-bottom: 2px; }
-.c-val { color: #333 !important; font-weight: 500; }
+.c-val { color: #333 !important; }
 
 .btn-action { 
     width: 100%; 
@@ -285,7 +289,6 @@ header {
     padding: 12px; 
     border-radius: 10px; 
     margin: 10px 0; 
-    font-weight: 600; 
 }
 
 /* --- FINANCEIRO --- */
@@ -327,7 +330,6 @@ header {
     color: #fff; 
     border: none; 
     border-radius: 30px; 
-    font-weight: 500; 
     cursor: pointer; 
 }
 
@@ -348,7 +350,6 @@ header {
     justify-content: space-between; 
     align-items: center; 
     font-size: 13px; 
-    font-weight: 500; 
 }
 
 .meu-menu-white { 
