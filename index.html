@@ -826,8 +826,14 @@ window.addEventListener('load', () => {
     } else {
         const user = JSON.parse(rawUser);
         console.log("Usuário logado:", user);
+        
         showPage('pg-lar'); 
+        
+        // 1. Sincroniza os dados (saldo, nome)
         sincronizarDados();
+
+        // 2. ADICIONE ESTA CHAMADA AQUI:
+        carregarTarefasDoServidor(); 
     }
 });
 </script>
