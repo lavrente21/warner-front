@@ -357,29 +357,66 @@ function showPage(id, el) {
 
     window.scrollTo(0, 0);
 }
-           async function carregarTarefas() {
-    // 1. Tente obter o utilizador de ambas as chaves possíveis
-    const userStr = localStorage.getItem('usuario') || localStorage.getItem('user');
-    
-    if (!userStr) {
-        console.error("Utilizador não encontrado no localStorage");
-        return;
-    }
+           // Função para buscar as tarefas do servidor
+async function carregarTarefasDoServidor() {
+    const rawUser = localStorage.getItem('usuario');
+    if (!rawUser) return;
+    const user = JSON.parse(rawUser);
 
-    const user = JSON.parse(userStr);
-
-    // 2. Verifique se o ID existe antes de chamar a API
-    if (!user.id) {
-        console.error("O ID do utilizador está vazio!");
-        return;
-    }
+    // Este ID deve existir no teu HTML (na parte da página de tarefas)
+    const container = document.getElementById('tarefas-nao-concluidas');
+    if (!container) return;
 
     try {
-        // 3. Só chama a API se o ID for válido
-        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id}`);
-        // ... resto da lógica
+        const res = await fetch(`https://warnermida-1.onrender.com/api/tarefas-disponiveis/${user.id}`);
+        const tarefas = await res.json();
+
+        if (tarefas.concluido) {
+            container.innerHTML = `<p style="text-align:center; padding:20px; color:gray;">${tarefas.mensagem}</p>`;
+            return;
+        }
+
+        container.innerHTML = ""; // Limpa o estado anterior
+        
+        tarefas.forEach(t => {
+            container.innerHTML += `
+                <div class="task-card">
+                    <div class="card-tag">VIP ${t.nivel_minimo}</div>
+                    <div class="card-main">
+                        <div class="card-img"><i class="fa-brands fa-youtube" style="color:red; font-size:30px;"></i></div>
+                        <div class="card-details">
+                            <div><p class="c-label">Recompensa</p><p class="c-val">${t.recompensa} Kz</p></div>
+                            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="concluirTarefa(${t.id}, ${t.recompensa})">Ir para tarefa</button>
+                </div>`;
+        });
     } catch (err) {
-        console.error("Erro na requisição:", err);
+        console.error("Erro ao carregar tarefas:", err);
+    }
+}
+
+// Função para processar o clique na tarefa
+async function concluirTarefa(tarefaId, valor) {
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    try {
+        const res = await fetch(`https://warnermida-1.onrender.com/api/completar-tarefa`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: user.id, tarefa_id: tarefaId })
+        });
+        
+        if (res.ok) {
+            toast(`✅ +${valor} Kz adicionados!`);
+            if(typeof sincronizarDados === 'function') sincronizarDados(); 
+            carregarTarefasDoServidor(); // Atualiza a lista
+        } else {
+            const erro = await res.json();
+            toast("❌ " + (erro.error || "Erro"));
+        }
+    } catch (e) {
+        toast("Erro na conexão.");
     }
             }
            
