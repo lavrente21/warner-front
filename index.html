@@ -359,16 +359,31 @@ function showPage(id, el) {
 }
            // Função para buscar as tarefas do servidor
 async function carregarTarefasDoServidor() {
-    const rawUser = localStorage.getItem('usuario');
-    if (!rawUser) return;
-    const user = JSON.parse(rawUser);
+    // 1. Tenta pegar de 'usuario' ou 'user' (garantindo que não seja undefined)
+    const stored = localStorage.getItem('usuario') || localStorage.getItem('user');
+    
+    if (!stored || stored === "undefined") {
+        console.error("Utilizador não encontrado no localStorage");
+        return;
+    }
 
-    // Este ID deve existir no teu HTML (na parte da página de tarefas)
+    const user = JSON.parse(stored);
+    
+    // 2. Verifica se o ID realmente existe
+    if (!user || !user.id) {
+        console.error("ID do utilizador é inválido:", user);
+        return;
+    }
+
     const container = document.getElementById('tarefas-nao-concluidas');
     if (!container) return;
 
     try {
+        // Agora o ${user.id} será um número real
         const res = await fetch(`https://warnermida-1.onrender.com/api/tarefas-disponiveis/${user.id}`);
+        
+        if (!res.ok) throw new Error("Erro na resposta do servidor");
+
         const tarefas = await res.json();
 
         if (tarefas.concluido) {
@@ -376,8 +391,7 @@ async function carregarTarefasDoServidor() {
             return;
         }
 
-        container.innerHTML = ""; // Limpa o estado anterior
-        
+        container.innerHTML = "";
         tarefas.forEach(t => {
             container.innerHTML += `
                 <div class="task-card">
@@ -389,13 +403,13 @@ async function carregarTarefasDoServidor() {
                             <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="concluirTarefa(${t.id}, ${t.recompensa})">Ir para tarefa</button>
+                    <button class="btn-action" onclick="fazerTarefa(${t.id}, ${t.recompensa})">Ir para tarefa</button>
                 </div>`;
         });
     } catch (err) {
         console.error("Erro ao carregar tarefas:", err);
     }
-}
+                                }
 
 // Função para processar o clique na tarefa
 async function concluirTarefa(tarefaId, valor) {
