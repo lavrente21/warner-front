@@ -1,5 +1,5 @@
 // CONFIGURAÇÃO GLOBAL
-const API_URL = "https://warnermida-1.onrender.com"; // URL do seu Backend no Render
+const API_URL = "https://warnermida-2.onrender.com"; // URL do seu Backend no Render
 
 // --- UTILITÁRIOS ---
 function toast(msg) {
