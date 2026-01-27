@@ -419,7 +419,94 @@ async function concluirTarefa(tarefaId) {
     }
             }
            
-// --- CONTROLE DAS ABAS DE TAREFAS ---
+// --- CONTROLE Dasync function completeTask(val, buttonEl) {
+  if (!buttonEl) return;
+
+  const storageData = localStorage.getItem("usuario") || localStorage.getItem("user");
+  if (!storageData) {
+    toast("⚠️ Faça login primeiro!");
+    return;
+  }
+
+  const user = JSON.parse(storageData);
+  const userId = user?.id;
+
+  if (!userId) {
+    toast("❌ Sessão inválida. Faça login novamente.");
+    return;
+  }
+
+  // LINK MONETAG
+  const monetagLink = "https://otieu.com/4/10483033";
+  const win = window.open(monetagLink, "_blank");
+  if (!win) {
+    toast("⚠️ Ative os Pop-ups!");
+    return;
+  }
+
+  let tempo = 10;
+  buttonEl.disabled = true;
+  buttonEl.style.background = "#555";
+
+  const contador = setInterval(async () => {
+    tempo--;
+    buttonEl.innerText = `AGUARDE ${tempo}s...`;
+
+    if (tempo <= 0) {
+      clearInterval(contador);
+      buttonEl.innerText = "VALIDANDO...";
+
+      try {
+        const res = await fetch(`${API_URL}/api/postback-cpagrip`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            valor: val,
+            origem: "monetag"
+          })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          toast("❌ " + (data?.error || "Erro ao validar"));
+          buttonEl.disabled = false;
+          buttonEl.innerText = "TENTAR NOVAMENTE";
+          buttonEl.style.background = "";
+          return;
+        }
+
+        toast(`✅ +${val} Kz recebidos!`);
+        buttonEl.innerText = "CONCLUÍDO ✅";
+        buttonEl.style.background = "#27ae60";
+        buttonEl.onclick = null;
+
+        const card = buttonEl.closest(".task-card");
+        const listaConcluidas = document.getElementById("tarefas-concluidas");
+
+        if (card && listaConcluidas) {
+          if (listaConcluidas.innerText.includes("Nenhuma tarefa")) {
+            listaConcluidas.innerHTML = "";
+          }
+          listaConcluidas.appendChild(card);
+        }
+
+        sincronizarDados();
+
+      } catch (err) {
+        console.error(err);
+        toast("❌ Erro de conexão com o servidor.");
+        buttonEl.disabled = false;
+        buttonEl.innerText = "TENTAR NOVAMENTE";
+        buttonEl.style.background = "";
+      }
+    }
+  }, 1000);
+}
+// AS ABAS DE TAREFAS ---
 function showTarefas(aba) {
     const naoConcluidas = document.getElementById('tarefas-nao-concluidas');
     const concluidas = document.getElementById('tarefas-concluidas');
@@ -438,64 +525,6 @@ function showTarefas(aba) {
     }
 }
 
-// --- FUNÇÃO DE TAREFA COM ANÚNCIO ---
-async function completeTask(val, buttonEl) {
-    if (!buttonEl) return;
-
-    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
-    if (!storageData) return toast("⚠️ Faça login primeiro!");
-    
-    const user = JSON.parse(storageData);
-    // CORREÇÃO: Usando apenas .id conforme seu log
-    const userId = user.id; 
-
-    const monetagLink = "https://otieu.com/4/10483033";
-    const win = window.open(monetagLink, '_blank');
-    if (!win) return toast("⚠️ Ative os Pop-ups!");
-
-    let tempo = 10;
-    buttonEl.disabled = true;
-    buttonEl.style.background = "#555";
-
-    const contador = setInterval(async () => {
-        tempo--;
-        buttonEl.innerText = `AGUARDE ${tempo}s...`;
-
-        if (tempo <= 0) {
-            clearInterval(contador);
-            buttonEl.innerText = "VALIDANDO...";
-
-            try {
-                const res = await fetch(`${API_URL}/api/postback-cpagrip?user_id=${userId}`);
-                if (res.ok) {
-                    toast(`✅ +${val} Kz recebidos!`);
-                    buttonEl.innerText = "CONCLUÍDO ✅";
-                    buttonEl.style.background = "#27ae60";
-                    buttonEl.onclick = null;
-
-                    const card = buttonEl.closest('.task-card');
-                    const listaConcluidas = document.getElementById('tarefas-concluidas');
-                    
-                    if (card && listaConcluidas) {
-                        if (listaConcluidas.innerText.includes("Nenhuma tarefa")) {
-                            listaConcluidas.innerHTML = "";
-                        }
-                        listaConcluidas.appendChild(card);
-                    }
-                    sincronizarDados();
-                } else {
-                    toast("❌ Erro ao validar.");
-                    buttonEl.disabled = false;
-                    buttonEl.innerText = "TENTAR NOVAMENTE";
-                }
-            } catch (e) {
-                toast("Erro de conexão");
-                buttonEl.disabled = false;
-                buttonEl.innerText = "TENTAR NOVAMENTE";
-            }
-        }
-    }, 1000);
-}
 
 // --- SUPORTE E IMAGENS ---
 async function enviarImagemSuporte(input) {
