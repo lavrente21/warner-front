@@ -419,7 +419,7 @@ async function concluirTarefa(tarefaId) {
     }
             }
            
-// --- CONTROLE Dasync function completeTask(val, buttonEl) {
+async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
 
   const storageData = localStorage.getItem("usuario") || localStorage.getItem("user");
@@ -506,6 +506,7 @@ async function concluirTarefa(tarefaId) {
     }
   }, 1000);
 }
+    
 // AS ABAS DE TAREFAS ---
 function showTarefas(aba) {
     const naoConcluidas = document.getElementById('tarefas-nao-concluidas');
