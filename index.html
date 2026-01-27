@@ -352,7 +352,7 @@ function showPage(id, el) {
 
     // 5. Roda as funções de carregar dados da API
     if (id === 'pg-vip') carregarPlanosVIP();
-    if (id === 'pg-tarefa') renderizarTarefasDoDia();
+ if (id === 'pg-tarefa') carregarTarefasDoServidor();
     if (id === 'pg-meu') sincronizarDados();
 
     window.scrollTo(0, 0);
