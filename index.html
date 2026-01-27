@@ -400,7 +400,7 @@ async function carregarTarefasDoServidor() {
 async function concluirTarefa(tarefaId) {
     const user = JSON.parse(localStorage.getItem('usuario'));
     try {
-        const res = await fetch(`https://warnermida-1.onrender.com/api/completar-tarefa`, {
+        const res = await fetch(`https://warnermida-2.onrender.com/api/completar-tarefa`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario_id: user.id, tarefa_id: tarefaId })
