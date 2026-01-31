@@ -425,37 +425,40 @@ async function concluirTarefa(tarefaId, btn) {
         btn.disabled = false;
     }
                 }
-           async function carregarTarefasConcluidas() {
+ async function carregarTarefasConcluidas() {
     const user = JSON.parse(localStorage.getItem('usuario'));
     const container = document.getElementById('tarefas-concluidas');
     
+    if (!container) return;
+
     try {
         const res = await fetch(`${API_URL}/api/historico/${user.id}`);
         const historico = await res.json();
 
-        if (historico.length === 0) {
+        if (!historico || historico.length === 0) {
             container.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">Nenhuma tarefa concluída hoje.</p>';
             return;
         }
 
-        container.innerHTML = ""; // Limpa a mensagem de "Nenhuma tarefa"
+        container.innerHTML = ""; 
         historico.forEach(item => {
             container.innerHTML += `
-                <div class="task-card completed" style="border-left: 5px solid #00ff88; opacity: 0.8;">
+                <div class="task-card completed" style="border-left: 5px solid #00ff88; opacity: 0.8; margin-bottom: 10px;">
                     <div class="card-main">
                         <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88; font-size: 30px;"></i></div>
                         <div class="card-details">
-                            <p style="color:white; font-weight:bold; margin:0;">${item.titulo || 'Tarefa Concluída'}</p>
-                            <p style="color:#00ff88; margin:0;">+ ${item.recompensa || item.valor} Kz</p>
-                            <small style="color:gray;">${new Date(item.data).toLocaleDateString()}</small>
+                            <p style="color:white; font-weight:bold; margin:0;">${item.titulo || 'Tarefa YouTube'}</p>
+                            <p style="color:#00ff88; margin:0;">+ ${item.recompensa} Kz</p>
+                            <small style="color:gray;">${new Date(item.data).toLocaleDateString('pt-BR')}</small>
                         </div>
                     </div>
                 </div>`;
         });
     } catch (err) {
         console.error("Erro ao carregar concluídas:", err);
+        container.innerHTML = '<p style="text-align:center; color:red;">Erro ao carregar dados.</p>';
     }
-              }
+    }
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
 
