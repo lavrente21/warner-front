@@ -826,20 +826,26 @@ async function comprarVIP(nivel, preco) {
 }
 
 async function confirmarRetirada() {
-    // 1. Coleta os dados
-    const user = JSON.parse(localStorage.getItem('usuario') || localStorage.getItem('user'));
-    const valor = document.getElementById('valor-retirada').value;
-    const iban = document.getElementById('iban-retirada').value;
-    const titular = document.getElementById('titular-retirada').value;
-    const senha = document.getElementById('senha-retirada').value;
+    console.log("Iniciando processo de levantamento...");
 
-    // 2. Validação rápida
-    if (!valor || !iban || !titular || !senha) {
-        return toast("❌ Preencha todos os campos!");
+    // 1. Captura dos dados (IDs sincronizados com seu HTML)
+    const user = JSON.parse(localStorage.getItem('usuario') || localStorage.getItem('user'));
+    const valorInput = document.getElementById('valor-retirada');
+    const ibanInput = document.getElementById('iban-retirada');
+    const nomeInput = document.getElementById('nome-retirada'); // Ajustado para coincidir com seu HTML
+    const senhaInput = document.getElementById('senha-retirada');
+
+    // 2. Validações básicas
+    if (!valorInput.value || !ibanInput.value || !nomeInput.value || !senhaInput.value) {
+        return toast("❌ Por favor, preencha todos os campos.");
     }
 
-    // 3. Ativa o carregamento (Spinner)
-    mostrarCarregando(); 
+    if (parseFloat(valorInput.value) < 5000) {
+        return toast("❌ O valor mínimo de levantamento é 5.000 Kz");
+    }
+
+    // 3. Ativar o carregamento (Spinner)
+    mostrarCarregando();
 
     try {
         const response = await fetch(`${API_URL}/api/levantamento`, {
@@ -847,31 +853,51 @@ async function confirmarRetirada() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 usuario_id: user.id,
-                valor: parseFloat(valor),
-                iban: iban,
-                nome_titular: titular,
-                senha: senha
+                valor: parseFloat(valorInput.value),
+                iban: ibanInput.value,
+                nome_titular: nomeInput.value,
+                senha: senhaInput.value
             })
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            toast("✅ Pedido de saque enviado!");
-            // Limpa os campos
-            document.getElementById('valor-retirada').value = "";
-            showPage('pg-lar'); // Volta para a home
+            toast("✅ Levantamento solicitado com sucesso!");
+            
+            // Limpa os campos após o sucesso
+            valorInput.value = "";
+            ibanInput.value = "";
+            nomeInput.value = "";
+            senhaInput.value = "";
+            
+            // Volta para a página principal após 2 segundos
+            setTimeout(() => {
+                showPage('pg-lar');
+                if(typeof carregarDadosUsuario === 'function') carregarDadosUsuario();
+            }, 2000);
         } else {
-            toast("❌ " + (data.error || "Erro ao processar"));
+            toast("❌ " + (data.error || "Erro ao processar levantamento"));
         }
     } catch (err) {
         console.error("Erro de conexão:", err);
-        toast("❌ Erro de conexão com o servidor");
+        toast("❌ Erro de conexão. Verifique sua internet.");
     } finally {
-        // 4. Esconde o carregamento
-        esconderCarregando(); 
+        // 4. Desativar o carregamento
+        esconderCarregando();
     }
 }
+
+// Funções de controle do carregador (spinner)
+function mostrarCarregando() {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.style.display = 'flex';
+}
+
+function esconderCarregando() {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.style.display = 'none';
+        }
 
 // Funções de controle do carregamento
 function mostrarCarregando() {
