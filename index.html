@@ -426,40 +426,67 @@ async function concluirTarefa(tarefaId, btn) {
     }
                 }
            async function carregarTarefasConcluidas() {
-    const stored = localStorage.getItem('usuario');
-    if (!stored) return;
-    const user = JSON.parse(stored);
-    
+
+    const user = JSON.parse(localStorage.getItem('usuario'));
+
     const container = document.getElementById('tarefas-concluidas');
-    if (!container) return;
+
+    
 
     try {
-        // Certifique-se que a rota /api/historico/:usuario_id existe no seu index.js
+
+        // Rota que busca no historico_tarefas
+
         const res = await fetch(`${API_URL}/api/historico/${user.id}`);
+
         const historico = await res.json();
 
+
+
         if (historico.length === 0) {
-            container.innerHTML = "<p style='text-align:center; color:gray; margin-top:20px;'>Nenhuma tarefa concluída.</p>";
+
+            container.innerHTML = `<p style="text-align: center; padding: 20px; color: #aaa;">Nenhuma tarefa concluída hoje.</p>`;
+
             return;
+
         }
 
-        container.innerHTML = ""; 
-        historico.forEach(h => {
+
+
+        container.innerHTML = "";
+
+        historico.forEach(item => {
+
             container.innerHTML += `
-                <div class="task-card completed" style="opacity: 0.8; border-left: 4px solid #00ff88;">
+
+                <div class="task-card completed" style="border-left: 4px solid #00ff88; opacity: 0.8;">
+
                     <div class="card-main">
+
                         <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88;"></i></div>
+
                         <div class="card-details">
+
                             <p style="color:white; font-weight:bold; margin:0;">Tarefa Finalizada</p>
-                            <p style="color:#00ff88; margin:0;">+ ${h.valor || h.recompensa || 0} Kz</p>
-                            <small style="color:gray;">${new Date(h.data).toLocaleDateString()}</small>
+
+                            <p style="color:#00ff88; margin:0;">+ ${item.valor || item.recompensa} Kz</p>
+
+                            <small style="color:gray;">${new Date(item.data).toLocaleDateString()}</small>
+
                         </div>
+
                     </div>
+
                 </div>`;
+
         });
+
     } catch (err) {
-        console.error("Erro ao carregar concluídas:", err);
+
+        console.error("Erro ao carregar histórico:", err);
+
     }
+
            }
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
