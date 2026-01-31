@@ -430,31 +430,29 @@ async function concluirTarefa(tarefaId, btn) {
     if (!stored) return;
     const user = JSON.parse(stored);
     
-    // O ID do container onde ficam as tarefas concluídas (verifique se existe no seu HTML)
     const container = document.getElementById('tarefas-concluidas');
     if (!container) return;
 
     try {
-        const res = await fetch(`${API_URL}/api/tarefas-concluidas/${user.id}`);
-        const concluidas = await res.json();
+        // Certifique-se que a rota /api/historico/:usuario_id existe no seu index.js
+        const res = await fetch(`${API_URL}/api/historico/${user.id}`);
+        const historico = await res.json();
 
-        if (concluidas.length === 0) {
-            container.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Nenhuma tarefa concluída ainda.</p>";
+        if (historico.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:gray; margin-top:20px;'>Nenhuma tarefa concluída.</p>";
             return;
         }
 
         container.innerHTML = ""; 
-        concluidas.forEach(t => {
-            const dataFormatada = new Date(t.data).toLocaleDateString('pt-BR');
+        historico.forEach(h => {
             container.innerHTML += `
-                <div class="task-card completed">
-                    <div class="card-tag" style="background: #00ff88; color: #000;">Concluída</div>
+                <div class="task-card completed" style="opacity: 0.8; border-left: 4px solid #00ff88;">
                     <div class="card-main">
-                        <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88; font-size:30px;"></i></div>
+                        <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88;"></i></div>
                         <div class="card-details">
-                            <p style="font-weight:bold; color:white; margin:0;">${t.titulo || 'Tarefa de Vídeo'}</p>
-                            <p class="c-val" style="color:#00ff88;">+ ${t.recompensa} Kz</p>
-                            <small style="color:gray;">Finalizada em: ${dataFormatada}</small>
+                            <p style="color:white; font-weight:bold; margin:0;">Tarefa Finalizada</p>
+                            <p style="color:#00ff88; margin:0;">+ ${h.valor || h.recompensa || 0} Kz</p>
+                            <small style="color:gray;">${new Date(h.data).toLocaleDateString()}</small>
                         </div>
                     </div>
                 </div>`;
@@ -462,7 +460,7 @@ async function concluirTarefa(tarefaId, btn) {
     } catch (err) {
         console.error("Erro ao carregar concluídas:", err);
     }
-                                  }
+           }
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
 
