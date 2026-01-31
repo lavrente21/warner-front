@@ -359,36 +359,39 @@ function showPage(id, el) {
 }
            // Função para buscar as tarefas do servidor
 async function carregarTarefasDoServidor() {
-    // Tenta obter o usuário com fallback para evitar o 'undefined'
     const stored = localStorage.getItem('usuario') || localStorage.getItem('user');
-    if (!stored || stored === "undefined") return;
+    if (!stored) return;
 
     const user = JSON.parse(stored);
     const container = document.getElementById('tarefas-nao-concluidas');
-    if (!container || !user.id) return;
+    if (!container) return;
 
     try {
-        const res = await fetch(`https://warnermida-1.onrender.com/api/tarefas-disponiveis/${user.id}`);
+        // Esta rota no seu backend já filtra se o usuário atingiu o limite ou se já fez a tarefa hoje
+        const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id}`);
         const tarefas = await res.json();
 
-        if (tarefas.concluido) {
-            container.innerHTML = `<div style="padding:20px; color:gray; text-align:center;">${tarefas.mensagem}</div>`;
+        if (tarefas.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px; color:gray;">
+                    <i class="fa-solid fa-circle-check" style="font-size:40px; color:#00ff88;"></i>
+                    <p>Você completou todas as tarefas de hoje para o seu nível VIP!</p>
+                </div>`;
             return;
         }
 
-        container.innerHTML = ""; // Limpa tarefas antigas
+        container.innerHTML = ""; 
         tarefas.forEach(t => {
             container.innerHTML += `
                 <div class="task-card">
-                    <div class="card-tag">VIP ${t.nivel_minimo}</div>
+                    <div class="card-tag">Tarefa Disponível</div>
                     <div class="card-main">
                         <div class="card-img"><i class="fa-brands fa-youtube" style="color:red; font-size:30px;"></i></div>
                         <div class="card-details">
-                            <div><p class="c-label">Recompensa</p><p class="c-val">${t.recompensa} Kz</p></div>
-                            <div><p class="c-label">Tipo</p><p class="c-val">Vídeo</p></div>
+                            <div><p class="c-label">Ganho</p><p class="c-val">${t.recompensa} Kz</p></div>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="concluirTarefa(${t.id})">Ir para tarefa</button>
+                    <button class="btn-action" onclick="concluirTarefa(${t.id}, this)">Realizar Tarefa</button>
                 </div>`;
         });
     } catch (err) {
@@ -397,27 +400,37 @@ async function carregarTarefasDoServidor() {
 }
 
 // Função para enviar a conclusão para a rota correta
-async function concluirTarefa(tarefaId) {
+async function concluirTarefa(tarefaId, btn) {
     const user = JSON.parse(localStorage.getItem('usuario'));
+    
+    // Desabilita o botão para evitar cliques duplos
+    btn.disabled = true;
+    btn.innerText = "Processando...";
+
     try {
-        const res = await fetch(`https://warnermida-2.onrender.com/api/completar-tarefa`, {
+        const res = await fetch(`${API_URL}/api/completar-tarefa`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario_id: user.id, tarefa_id: tarefaId })
         });
         
+        const data = await res.json();
+
         if (res.ok) {
-            toast("✅ Tarefa concluída com sucesso!");
+            toast("✅ Tarefa concluída!");
             sincronizarDados(); 
+            // Recarrega a lista: a tarefa sumirá pois o ID dela agora está no historico_tarefas
             carregarTarefasDoServidor();
         } else {
-            const data = await res.json();
             toast("❌ " + data.error);
+            btn.disabled = false;
+            btn.innerText = "Tentar novamente";
         }
     } catch (e) {
-        toast("Erro ao processar tarefa.");
+        toast("Erro ao conectar ao servidor.");
+        btn.disabled = false;
     }
-            }
+                }
            
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
