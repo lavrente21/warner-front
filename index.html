@@ -426,68 +426,36 @@ async function concluirTarefa(tarefaId, btn) {
     }
                 }
            async function carregarTarefasConcluidas() {
-
     const user = JSON.parse(localStorage.getItem('usuario'));
-
     const container = document.getElementById('tarefas-concluidas');
-
     
-
     try {
-
-        // Rota que busca no historico_tarefas
-
         const res = await fetch(`${API_URL}/api/historico/${user.id}`);
-
         const historico = await res.json();
 
-
-
         if (historico.length === 0) {
-
-            container.innerHTML = `<p style="text-align: center; padding: 20px; color: #aaa;">Nenhuma tarefa concluída hoje.</p>`;
-
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">Nenhuma tarefa concluída hoje.</p>';
             return;
-
         }
 
-
-
-        container.innerHTML = "";
-
+        container.innerHTML = ""; // Limpa a mensagem de "Nenhuma tarefa"
         historico.forEach(item => {
-
             container.innerHTML += `
-
-                <div class="task-card completed" style="border-left: 4px solid #00ff88; opacity: 0.8;">
-
+                <div class="task-card completed" style="border-left: 5px solid #00ff88; opacity: 0.8;">
                     <div class="card-main">
-
-                        <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88;"></i></div>
-
+                        <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88; font-size: 30px;"></i></div>
                         <div class="card-details">
-
-                            <p style="color:white; font-weight:bold; margin:0;">Tarefa Finalizada</p>
-
-                            <p style="color:#00ff88; margin:0;">+ ${item.valor || item.recompensa} Kz</p>
-
+                            <p style="color:white; font-weight:bold; margin:0;">${item.titulo || 'Tarefa Concluída'}</p>
+                            <p style="color:#00ff88; margin:0;">+ ${item.recompensa || item.valor} Kz</p>
                             <small style="color:gray;">${new Date(item.data).toLocaleDateString()}</small>
-
                         </div>
-
                     </div>
-
                 </div>`;
-
         });
-
     } catch (err) {
-
-        console.error("Erro ao carregar histórico:", err);
-
+        console.error("Erro ao carregar concluídas:", err);
     }
-
-           }
+              }
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
 
@@ -577,21 +545,22 @@ async function completeTask(val, buttonEl) {
 }
     
 // AS ABAS DE TAREFAS ---
-function showTarefas(aba) {
-    const naoConcluidas = document.getElementById('tarefas-nao-concluidas');
-    const concluidas = document.getElementById('tarefas-concluidas');
-    const btns = document.querySelectorAll('.task-tab-btn');
+function showTarefas(tipo) {
+    // Remove classe ativa de todos os botões e adiciona ao clicado
+    document.querySelectorAll('.task-tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
 
-    if(btns.length > 0) btns.forEach(b => b.classList.remove('active'));
+    const listaDisponivel = document.getElementById('tarefas-nao-concluidas');
+    const listaConcluida = document.getElementById('tarefas-concluidas');
 
-    if (aba === 'concluidas') {
-        if(naoConcluidas) naoConcluidas.classList.add('hidden');
-        if(concluidas) concluidas.classList.remove('hidden');
-        if(btns[1]) btns[1].classList.add('active');
+    if (tipo === 'concluidas') {
+        listaDisponivel.classList.add('hidden');
+        listaConcluida.classList.remove('hidden');
+        carregarTarefasConcluidas(); // <--- IMPORTANTE: Chama a função aqui
     } else {
-        if(naoConcluidas) naoConcluidas.classList.remove('hidden');
-        if(concluidas) concluidas.classList.add('hidden');
-        if(btns[0]) btns[0].classList.add('active');
+        listaConcluida.classList.add('hidden');
+        listaDisponivel.classList.remove('hidden');
+        carregarTarefasDoServidor();
     }
 }
 
