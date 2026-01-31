@@ -425,37 +425,42 @@ async function concluirTarefa(tarefaId, btn) {
         btn.disabled = false;
     }
                 }
- async function carregarTarefasConcluidas() {
-    const user = JSON.parse(localStorage.getItem('usuario') || localStorage.getItem('user'));
+async function carregarTarefasConcluidas() {
+    const rawUser = localStorage.getItem('usuario') || localStorage.getItem('user');
+    if (!rawUser) return;
+    
+    const user = JSON.parse(rawUser);
     const container = document.getElementById('tarefas-concluidas');
-    if (!container || !user) return;
+    if (!container) return;
 
     try {
         const res = await fetch(`${API_URL}/api/historico/${user.id}`);
         const dados = await res.json();
 
-        // Se o array vier vazio, mostra a mensagem de "vazio"
         if (!dados || dados.length === 0) {
-            container.innerHTML = '<p style="text-align:center; color:gray; padding:20px;">Você ainda não concluiu tarefas hoje.</p>';
+            container.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">Você ainda não concluiu tarefas hoje.</p>';
             return;
         }
 
-        container.innerHTML = ""; // Limpa o "Carregando..."
+        container.innerHTML = ""; // Limpa o estado anterior
         
         dados.forEach(item => {
+            // Usamos item.titulo e item.valor conforme definido no SQL acima
             container.innerHTML += `
-                <div class="task-card" style="border-left: 4px solid #00ff88; margin-bottom:10px; background: rgba(255,255,255,0.05);">
-                    <div class="card-main" style="display:flex; align-items:center; padding:10px;">
+                <div class="task-card" style="border-left: 4px solid #00ff88; margin-bottom:12px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;">
+                    <div class="card-main" style="display:flex; align-items:center;">
                         <i class="fa-solid fa-circle-check" style="color:#00ff88; font-size:24px; margin-right:15px;"></i>
                         <div>
-                            <p style="margin:0; font-weight:bold; color:white;">${item.titulo}</p>
-                            <p style="margin:0; color:#00ff88;">+ ${item.valor} Kz</p>
+                            <p style="margin:0; font-weight:bold; color:white; font-size:14px;">${item.titulo}</p>
+                            <p style="margin:0; color:#00ff88; font-size:13px; font-weight:600;">+ ${item.valor} Kz</p>
+                            <small style="color:#888; font-size:11px;">Concluída em: ${new Date(item.data).toLocaleDateString('pt-BR')}</small>
                         </div>
                     </div>
                 </div>`;
         });
     } catch (err) {
-        container.innerHTML = '<p style="text-align:center; color:red;">Erro ao conectar com o servidor.</p>';
+        console.error("Erro no front:", err);
+        container.innerHTML = '<p style="text-align:center; color:#ff4444;">Erro ao carregar histórico.</p>';
     }
             }
  
