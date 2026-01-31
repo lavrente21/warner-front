@@ -825,35 +825,49 @@ async function comprarVIP(nivel, preco) {
     } catch (err) { toast("Erro de conexão"); }
 }
 
-
-        
-
 async function confirmarRetirada() {
+    const user = JSON.parse(localStorage.getItem('usuario') || localStorage.getItem('user'));
     const valor = document.getElementById('valor-retirada').value;
-    // ... outras variáveis ...
+    const iban = document.getElementById('iban-retirada').value;
+    const titular = document.getElementById('titular-retirada').value;
+    const senha = document.getElementById('senha-retirada').value;
 
-    mostrarCarregando(); // Bloqueia a tela com o spinner igual ao da imagem
+    if (!valor || !iban || !titular) return toast("Preencha todos os campos");
+
+    // Ativa o carregamento (Spinner)
+    mostrarCarregando(); 
+
     try {
         const res = await fetch(`${API_URL}/api/levantamento`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id, valor, iban, nome_titular: titular, senha })
+            body: JSON.stringify({ 
+                usuario_id: user.id, 
+                valor: parseFloat(valor), 
+                iban: iban, 
+                nome_titular: titular, 
+                senha: senha 
+            })
         });
-        
+
         const data = await res.json();
+
         if (res.ok) {
-            toast("✅ Saque solicitado com sucesso!");
-            showPage('pg-lar');
+            toast("✅ Pedido de saque enviado com sucesso!");
+            showPage('pg-lar'); // Volta para a home
+            // Atualizar o saldo na tela
+            if(typeof carregarDadosUsuario === "function") carregarDadosUsuario();
         } else {
-            toast("❌ " + data.error);
+            toast("❌ " + (data.error || "Erro ao processar"));
         }
     } catch (err) {
-        toast("Erro de conexão");
+        console.error("Erro de rede:", err);
+        toast("❌ Erro de conexão com o servidor");
     } finally {
-        esconderCarregando(); // Libera a tela
+        // Esconde o carregamento
+        esconderCarregando(); 
     }
 }
-
 // --- UTILITÁRIOS ---
 function toast(msg, tipo = 'info') {
     const container = document.getElementById('toast-container');
