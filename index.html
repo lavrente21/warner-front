@@ -425,7 +425,44 @@ async function concluirTarefa(tarefaId, btn) {
         btn.disabled = false;
     }
                 }
-           
+           async function carregarTarefasConcluidas() {
+    const stored = localStorage.getItem('usuario');
+    if (!stored) return;
+    const user = JSON.parse(stored);
+    
+    // O ID do container onde ficam as tarefas concluídas (verifique se existe no seu HTML)
+    const container = document.getElementById('tarefas-concluidas');
+    if (!container) return;
+
+    try {
+        const res = await fetch(`${API_URL}/api/tarefas-concluidas/${user.id}`);
+        const concluidas = await res.json();
+
+        if (concluidas.length === 0) {
+            container.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Nenhuma tarefa concluída ainda.</p>";
+            return;
+        }
+
+        container.innerHTML = ""; 
+        concluidas.forEach(t => {
+            const dataFormatada = new Date(t.data).toLocaleDateString('pt-BR');
+            container.innerHTML += `
+                <div class="task-card completed">
+                    <div class="card-tag" style="background: #00ff88; color: #000;">Concluída</div>
+                    <div class="card-main">
+                        <div class="card-img"><i class="fa-solid fa-circle-check" style="color:#00ff88; font-size:30px;"></i></div>
+                        <div class="card-details">
+                            <p style="font-weight:bold; color:white; margin:0;">${t.titulo || 'Tarefa de Vídeo'}</p>
+                            <p class="c-val" style="color:#00ff88;">+ ${t.recompensa} Kz</p>
+                            <small style="color:gray;">Finalizada em: ${dataFormatada}</small>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    } catch (err) {
+        console.error("Erro ao carregar concluídas:", err);
+    }
+                                  }
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
 
