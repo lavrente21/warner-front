@@ -9,52 +9,71 @@
 <link rel="stylesheet" href="style.css">
     
 </head>
+<!-- LOADING -->
 <div id="loading-overlay" class="loading-overlay" style="display: none;">
-    <div class="loading-box">
-        <div class="spinner"></div>
-    </div>
+  <div class="loading-box">
+    <div class="spinner-dots"></div>
+  </div>
 </div>
 
 <style>
-    .loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4); /* Fundo escurecido suave */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10000;
-    }
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25); /* fundo suave */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  }
 
-    .loading-box {
-      width: 110px;
-      height: 110px;
-      background: #4a4a4a; /* Cor cinza da caixa */
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
+  .loading-box {
+    width: 110px;
+    height: 110px;
+    background: #6a6a6a; /* cinza mais claro */
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .spinner {
-      width: 36px;
-      height: 36px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top: 4px solid #ffffff; /* Parte branca que gira */
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+  /* spinner de tracinhos */
+  .spinner-dots {
+    width: 40px;
+    height: 40px;
+    position: relative;
+  }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    .no-scroll { overflow: hidden; }
+  .spinner-dots::before {
+    content: "";
+    box-sizing: border-box;
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 4px solid transparent;
+    border-top-color: #fff;
+    border-right-color: #fff;
+    border-bottom-color: #fff;
+    animation: spin 1s linear infinite;
+    mask: repeating-conic-gradient(
+      #000 0deg 20deg,
+      transparent 20deg 40deg
+    );
+    -webkit-mask: repeating-conic-gradient(
+      #000 0deg 20deg,
+      transparent 20deg 40deg
+    );
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .no-scroll {
+    overflow: hidden;
+  }
 </style>
+
 <div id="app">
 <header id="main-header" style="height: 60px; padding: 0 20px; display: flex; align-items: center; justify-content: space-between;">
     <div class="brand" style="display: flex; align-items: center; height: 100%;">
