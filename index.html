@@ -359,24 +359,19 @@ function showPage(id, el) {
 }
            // Função para buscar as tarefas do servidor
 async function carregarTarefasDoServidor() {
-    const stored = localStorage.getItem('usuario') || localStorage.getItem('user');
+    const stored = localStorage.getItem('usuario');
     if (!stored) return;
 
     const user = JSON.parse(stored);
     const container = document.getElementById('tarefas-nao-concluidas');
-    if (!container) return;
-
+    
     try {
-        // Esta rota no seu backend já filtra se o usuário atingiu o limite ou se já fez a tarefa hoje
+        // Use a constante API_URL que você já definiu no topo do script
         const res = await fetch(`${API_URL}/api/tarefas-disponiveis/${user.id}`);
         const tarefas = await res.json();
 
         if (tarefas.length === 0) {
-            container.innerHTML = `
-                <div style="text-align:center; padding:20px; color:gray;">
-                    <i class="fa-solid fa-circle-check" style="font-size:40px; color:#00ff88;"></i>
-                    <p>Você completou todas as tarefas de hoje para o seu nível VIP!</p>
-                </div>`;
+            container.innerHTML = "<p style='color:gray; text-align:center;'>Nenhuma tarefa disponível para seu nível hoje.</p>";
             return;
         }
 
@@ -384,21 +379,20 @@ async function carregarTarefasDoServidor() {
         tarefas.forEach(t => {
             container.innerHTML += `
                 <div class="task-card">
-                    <div class="card-tag">Tarefa Disponível</div>
+                    <div class="card-tag">VIP ${t.nivel_minimo || ''}</div>
                     <div class="card-main">
                         <div class="card-img"><i class="fa-brands fa-youtube" style="color:red; font-size:30px;"></i></div>
                         <div class="card-details">
                             <div><p class="c-label">Ganho</p><p class="c-val">${t.recompensa} Kz</p></div>
                         </div>
                     </div>
-                    <button class="btn-action" onclick="concluirTarefa(${t.id}, this)">Realizar Tarefa</button>
+                    <button class="btn-action" onclick="concluirTarefa(${t.id}, this)">Ir para tarefa</button>
                 </div>`;
         });
     } catch (err) {
-        console.error("Erro ao buscar tarefas:", err);
+        console.error("Erro ao carregar tarefas:", err);
     }
-}
-
+    }
 // Função para enviar a conclusão para a rota correta
 async function concluirTarefa(tarefaId, btn) {
     const user = JSON.parse(localStorage.getItem('usuario'));
