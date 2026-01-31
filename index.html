@@ -826,47 +826,62 @@ async function comprarVIP(nivel, preco) {
 }
 
 async function confirmarRetirada() {
+    // 1. Coleta os dados
     const user = JSON.parse(localStorage.getItem('usuario') || localStorage.getItem('user'));
     const valor = document.getElementById('valor-retirada').value;
     const iban = document.getElementById('iban-retirada').value;
     const titular = document.getElementById('titular-retirada').value;
     const senha = document.getElementById('senha-retirada').value;
 
-    if (!valor || !iban || !titular) return toast("Preencha todos os campos");
+    // 2. Validação rápida
+    if (!valor || !iban || !titular || !senha) {
+        return toast("❌ Preencha todos os campos!");
+    }
 
-    // Ativa o carregamento (Spinner)
+    // 3. Ativa o carregamento (Spinner)
     mostrarCarregando(); 
 
     try {
-        const res = await fetch(`${API_URL}/api/levantamento`, {
+        const response = await fetch(`${API_URL}/api/levantamento`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                usuario_id: user.id, 
-                valor: parseFloat(valor), 
-                iban: iban, 
-                nome_titular: titular, 
-                senha: senha 
+            body: JSON.stringify({
+                usuario_id: user.id,
+                valor: parseFloat(valor),
+                iban: iban,
+                nome_titular: titular,
+                senha: senha
             })
         });
 
-        const data = await res.json();
+        const data = await response.json();
 
-        if (res.ok) {
-            toast("✅ Pedido de saque enviado com sucesso!");
+        if (response.ok) {
+            toast("✅ Pedido de saque enviado!");
+            // Limpa os campos
+            document.getElementById('valor-retirada').value = "";
             showPage('pg-lar'); // Volta para a home
-            // Atualizar o saldo na tela
-            if(typeof carregarDadosUsuario === "function") carregarDadosUsuario();
         } else {
             toast("❌ " + (data.error || "Erro ao processar"));
         }
     } catch (err) {
-        console.error("Erro de rede:", err);
+        console.error("Erro de conexão:", err);
         toast("❌ Erro de conexão com o servidor");
     } finally {
-        // Esconde o carregamento
+        // 4. Esconde o carregamento
         esconderCarregando(); 
     }
+}
+
+// Funções de controle do carregamento
+function mostrarCarregando() {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.style.display = 'flex';
+}
+
+function esconderCarregando() {
+    const loader = document.getElementById('loading-overlay');
+    if (loader) loader.style.display = 'none';
 }
 // --- UTILITÁRIOS ---
 function toast(msg, tipo = 'info') {
