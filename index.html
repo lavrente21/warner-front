@@ -10,14 +10,31 @@
     
 </head>
 <body>
-<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
-    <div class="spinner" style="width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #00ff88; animation: spin 1s ease-in-out infinite;"></div>
-    <p style="color: white; margin-top: 15px; font-family: 'Inter', sans-serif; font-size: 14px;">Carregando...</p>
+<div id="loading-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center; flex-direction: column;">
+    <div class="loader-circle"></div>
+    <p style="color: white; margin-top: 20px; font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 1px;">Carregando...</p>
 </div>
 
 <style>
-@keyframes spin {
-    to { transform: rotate(360deg); }
+/* Estilo do Spinner Idêntico ao padrão de Apps modernos */
+.loader-circle {
+    width: 60px;
+    height: 60px;
+    border: 6px solid rgba(255, 255, 255, 0.1); /* Parte clara */
+    border-top: 6px solid #00ff88; /* Parte que brilha e gira */
+    border-radius: 50%;
+    animation: spin-loader 1s linear infinite;
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.2);
+}
+
+@keyframes spin-loader {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Garante que o corpo não role quando carregar */
+.no-scroll {
+    overflow: hidden;
 }
 </style>
 <div id="app">
