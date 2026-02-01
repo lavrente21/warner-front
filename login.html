@@ -21,11 +21,11 @@
             <div></div><div></div><div></div><div></div>
             <div></div><div></div><div></div><div></div>
         </div>
-        <div class="loading-text">Entrando...</div>
     </div>
 </div>
 
 <style>
+    /* Overlay que cobre a tela toda */
     .loading-overlay {
         position: fixed;
         inset: 0;
@@ -35,21 +35,27 @@
         justify-content: center;
         z-index: 10000;
     }
+
+    /* Caixa central (HUD) */
     .hud-container {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
         background-color: rgba(0, 0, 0, 0.8);
         border-radius: 20px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
+
+    /* Spinner de 12 hastes */
     .spinner-ios {
         position: relative;
-        width: 40px;
-        height: 40px;
+        width: 30px;
+        height: 30px;
     }
+
     .spinner-ios div {
         position: absolute;
         width: 10%;
@@ -61,7 +67,8 @@
         border-radius: 50px;
         animation: fade-spinner 1s linear infinite;
     }
-    /* Rotação das 12 hastes */
+
+    /* Rotação e Delay das Hastes */
     .spinner-ios div:nth-child(1)  { transform: rotate(0deg) translate(0, -135%); animation-delay: 0s; }
     .spinner-ios div:nth-child(2)  { transform: rotate(30deg) translate(0, -135%); animation-delay: -0.9167s; }
     .spinner-ios div:nth-child(3)  { transform: rotate(60deg) translate(0, -135%); animation-delay: -0.833s; }
@@ -75,9 +82,21 @@
     .spinner-ios div:nth-child(11) { transform: rotate(300deg) translate(0, -135%); animation-delay: -0.1667s; }
     .spinner-ios div:nth-child(12) { transform: rotate(330deg) translate(0, -135%); animation-delay: -0.0833s; }
 
-    @keyframes fade-spinner { from { opacity: 1; } to { opacity: 0.15; } }
-    .loading-text { margin-top: 15px; color: white; font-size: 13px; font-weight: 500; }
-</style>
+    @keyframes fade-spinner {
+        from { opacity: 1; }
+        to { opacity: 0.15; }
+    }
+
+    .loading-text {
+        margin-top: 15px;
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        font-family: sans-serif;
+    }
+
+    .no-scroll { overflow: hidden; }
+        </style>
     <div id="pg-login" class="view page-finance">
         <div class="finance-header" onclick="window.location.href='index.html'" style="cursor:pointer; padding: 20px; background: #6a3ab2; color: white;">
             <i class="fa-solid fa-chevron-left"></i> Login
