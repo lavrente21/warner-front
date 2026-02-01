@@ -934,27 +934,25 @@ async function confirmarRetirada() {
 }
 
 // Funções de controle do carregador (spinner)
-function mostrarCarregando() {
-    const loader = document.getElementById('loading-overlay');
-    if (loader) loader.style.display = 'flex';
+function mostrarCarregando() { showLoading(); }
+function esconderCarregando() { hideLoading(); }
+
+function showLoading() {
+    const loader = document.getElementById("loading-overlay");
+    if (loader) {
+        loader.style.display = "flex";
+        document.body.classList.add("no-scroll");
+    }
 }
 
-function esconderCarregando() {
-    const loader = document.getElementById('loading-overlay');
-    if (loader) loader.style.display = 'none';
-        }
-
-// Funções de controle do carregamento
-function mostrarCarregando() {
-    const loader = document.getElementById('loading-overlay');
-    if (loader) loader.style.display = 'flex';
+function hideLoading() {
+    const loader = document.getElementById("loading-overlay");
+    if (loader) {
+        loader.style.display = "none";
+        document.body.classList.remove("no-scroll");
+    }
 }
-
-function esconderCarregando() {
-    const loader = document.getElementById('loading-overlay');
-    if (loader) loader.style.display = 'none';
-}
-// --- UTILITÁRIOS ---
+           // --- UTILITÁRIOS ---
 function toast(msg, tipo = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return alert(msg); 
