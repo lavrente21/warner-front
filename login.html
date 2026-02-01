@@ -14,6 +14,70 @@
     </style>
 </head>
 <body>
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="hud-container">
+        <div class="spinner-ios">
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+            <div></div><div></div><div></div><div></div>
+        </div>
+        <div class="loading-text">Entrando...</div>
+    </div>
+</div>
+
+<style>
+    .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+    .hud-container {
+        width: 120px;
+        height: 120px;
+        background-color: rgba(0, 0, 0, 0.8);
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .spinner-ios {
+        position: relative;
+        width: 40px;
+        height: 40px;
+    }
+    .spinner-ios div {
+        position: absolute;
+        width: 10%;
+        height: 28%;
+        background: #ffffff;
+        left: 44.5%;
+        top: 37%;
+        opacity: 0;
+        border-radius: 50px;
+        animation: fade-spinner 1s linear infinite;
+    }
+    /* Rotação das 12 hastes */
+    .spinner-ios div:nth-child(1)  { transform: rotate(0deg) translate(0, -135%); animation-delay: 0s; }
+    .spinner-ios div:nth-child(2)  { transform: rotate(30deg) translate(0, -135%); animation-delay: -0.9167s; }
+    .spinner-ios div:nth-child(3)  { transform: rotate(60deg) translate(0, -135%); animation-delay: -0.833s; }
+    .spinner-ios div:nth-child(4)  { transform: rotate(90deg) translate(0, -135%); animation-delay: -0.75s; }
+    .spinner-ios div:nth-child(5)  { transform: rotate(120deg) translate(0, -135%); animation-delay: -0.667s; }
+    .spinner-ios div:nth-child(6)  { transform: rotate(150deg) translate(0, -135%); animation-delay: -0.583s; }
+    .spinner-ios div:nth-child(7)  { transform: rotate(180deg) translate(0, -135%); animation-delay: -0.5s; }
+    .spinner-ios div:nth-child(8)  { transform: rotate(210deg) translate(0, -135%); animation-delay: -0.4167s; }
+    .spinner-ios div:nth-child(9)  { transform: rotate(240deg) translate(0, -135%); animation-delay: -0.333s; }
+    .spinner-ios div:nth-child(10) { transform: rotate(270deg) translate(0, -135%); animation-delay: -0.25s; }
+    .spinner-ios div:nth-child(11) { transform: rotate(300deg) translate(0, -135%); animation-delay: -0.1667s; }
+    .spinner-ios div:nth-child(12) { transform: rotate(330deg) translate(0, -135%); animation-delay: -0.0833s; }
+
+    @keyframes fade-spinner { from { opacity: 1; } to { opacity: 0.15; } }
+    .loading-text { margin-top: 15px; color: white; font-size: 13px; font-weight: 500; }
+</style>
     <div id="pg-login" class="view page-finance">
         <div class="finance-header" onclick="window.location.href='index.html'" style="cursor:pointer; padding: 20px; background: #6a3ab2; color: white;">
             <i class="fa-solid fa-chevron-left"></i> Login
@@ -42,35 +106,40 @@
     const API_URL = "https://warnermida-2.onrender.com";
 
     async function login() {
-        // Pegando os IDs corretos que estão no HTML acima
-        const email = document.getElementById('email-login').value;
-        const senha = document.getElementById('senha-login').value;
+    const email = document.getElementById('email-login').value;
+    const senha = document.getElementById('senha-login').value;
 
-        if (!email || !senha) {
-            alert("Por favor, preencha todos os campos.");
-            return;
+    if (!email || !senha) {
+        alert("Por favor, preencha todos os campos.");
+        return;
+    }
+
+    // --- ATIVA O LOADING AQUI ---
+    const loader = document.getElementById("loading-overlay");
+    loader.style.display = "flex";
+
+    try {
+        const res = await fetch(`${API_URL}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, senha })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            localStorage.setItem('usuario', JSON.stringify(data));
+            // Redireciona mantendo o aspecto de "carregando"
+            window.location.href = 'index.html';
+        } else {
+            loader.style.display = "none"; // Esconde se der erro para o usuário tentar de novo
+            alert(data.error || "Dados incorretos");
         }
-
-        try {
-            const res = await fetch(`${API_URL}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, senha })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-                // SALVA SEMPRE COMO 'usuario' PARA COMBINAR COM SEU SCRIPT.JS
-                localStorage.setItem('usuario', JSON.stringify(data));
-                window.location.href = 'index.html';
-            } else {
-                alert(data.error || "Dados incorretos");
-            }
-        } catch (err) {
-            console.error("Erro:", err);
-            alert("Erro de conexão com o servidor.");
-        }
+    } catch (err) {
+        loader.style.display = "none";
+        console.error("Erro:", err);
+        alert("Erro de conexão com o servidor.");
+    }
     }
 </script>
     <div id="toast-container" class="toast-container"></div>
