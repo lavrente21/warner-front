@@ -483,6 +483,49 @@ async function carregarTarefasDoServidor() {
         console.error("Erro ao carregar tarefas:", err);
     }
     }
+           async function carregarHistoricoFinanceiro() {
+    // Tenta pegar o user de ambas as chaves possíveis no seu código
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
+    if (!storageData) return;
+    
+    const user = JSON.parse(storageData);
+    const container = document.getElementById('lista-transacoes');
+    if (!container) return;
+
+    try {
+        // Chamada para a nova rota que criamos acima
+        const res = await fetch(`${API_URL}/api/transacoes/${user.id}`);
+        const transacoes = await res.json();
+
+        container.innerHTML = ""; // Limpa o estado anterior
+
+        if (transacoes.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:gray; margin-top:20px;">Sem movimentos.</p>';
+            return;
+        }
+
+        transacoes.forEach(t => {
+            const isDeposito = t.tipo === 'deposito';
+            const corStatus = t.status === 'aprovado' ? '#00ff88' : (t.status === 'pendente' ? '#f1c40f' : '#ff4444');
+            const dataFormatada = new Date(t.data).toLocaleDateString('pt-PT');
+
+            container.innerHTML += `
+                <div class="transaction-card" style="background: #f8f9fa; padding: 12px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid ${corStatus};">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; color: #666; font-weight: 600;">${isDeposito ? 'DEPÓSITO' : 'LEVANTAMENTO'}</span>
+                        <span style="font-size: 10px; color: ${corStatus}; font-weight: bold; text-transform: uppercase;">${t.status}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                        <b style="font-size: 15px; color: #333;">${parseFloat(t.valor).toLocaleString()} Kz</b>
+                        <span style="font-size: 11px; color: #999;">${dataFormatada}</span>
+                    </div>
+                </div>`;
+        });
+    } catch (err) {
+        console.error("Erro ao carregar histórico:", err);
+        if(typeof toast === "function") toast("Erro ao conectar ao servidor.");
+    }
+           }
 // Função para enviar a conclusão para a rota correta
 async function concluirTarefa(tarefaId, btn) {
     const user = JSON.parse(localStorage.getItem('usuario'));
