@@ -482,8 +482,9 @@ async function carregarTarefasDoServidor() {
     } catch (err) {
         console.error("Erro ao carregar tarefas:", err);
     }
-}async function carregarHistoricoFinanceiro() {
-    // 1. Verifica como o usuário está salvo (pode ser 'user' ou 'usuario')
+}
+
+           async function carregarHistoricoFinanceiro() {
     const raw = localStorage.getItem('usuario') || localStorage.getItem('user');
     if (!raw) return;
     const user = JSON.parse(raw);
@@ -492,40 +493,39 @@ async function carregarTarefasDoServidor() {
     if (!container) return;
 
     try {
-        // 2. Chama a rota que criamos acima
-        const res = await fetch(`${API_URL}/api/transacoes/${user.id}`);
+        // Usa o ID do utilizador logado
+        const res = await fetch(`${API_URL}/api/historico/${user.id}`);
         const dados = await res.json();
 
-        container.innerHTML = ""; // Limpa a lista atual
+        container.innerHTML = ""; 
 
-        if (!dados || dados.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">Nenhum registro encontrado.</div>';
+        if (dados.length === 0) {
+            container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">Nenhum registo encontrado.</div>';
             return;
         }
 
-        // 3. Renderiza cada transação
         dados.forEach(t => {
             const isDep = t.tipo === 'deposito';
-            const statusCor = t.status === 'aprovado' ? '#00c853' : (t.status === 'pendente' ? '#ffab00' : '#d50000');
+            const cor = t.status === 'aprovado' ? '#00ff88' : (t.status === 'pendente' ? '#f1c40f' : '#ff4444');
             
             container.innerHTML += `
-                <div style="background:#fff; border-radius:12px; padding:15px; margin-bottom:10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid ${statusCor};">
+                <div style="background:#fff; border-radius:10px; padding:15px; margin-bottom:10px; border-left:5px solid ${cor}; color:#333;">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:11px; font-weight:bold; color:#666; text-transform:uppercase;">
-                            ${isDep ? '📥 Depósito' : '📤 Levantamento'}
-                        </span>
-                        <span style="font-size:10px; color:${statusCor}; font-weight:bold; text-transform:uppercase;">${t.status}</span>
+                        <span style="font-size:12px; font-weight:bold; color:#666;">${isDep ? '📥 DEPÓSITO' : '📤 LEVANTAMENTO'}</span>
+                        <span style="font-size:10px; color:${cor}; font-weight:bold;">${t.status.toUpperCase()}</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
-                        <b style="font-size:16px; color:#333;">${parseFloat(t.valor).toLocaleString()} Kz</b>
-                        <span style="font-size:11px; color:#999;">${new Date(t.data).toLocaleDateString('pt-AO')}</span>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                        <b style="font-size:16px;">${parseFloat(t.valor).toLocaleString()} Kz</b>
+                        <span style="font-size:11px; color:#999;">${new Date(t.data).toLocaleDateString()}</span>
                     </div>
                 </div>`;
         });
     } catch (err) {
-        console.error("Erro ao carregar:", err);
-        if(typeof toast === "function") toast("Erro ao conectar ao servidor");
+        console.error("Erro ao carregar histórico:", err);
+        // Se a função toast existir no seu style.css/js:
+        if(window.toast) toast("Erro ao carregar dados");
     }
+           }
                                                                     }
 // Função para enviar a conclusão para a rota correta
 async function concluirTarefa(tarefaId, btn) {
