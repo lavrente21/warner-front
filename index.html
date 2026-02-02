@@ -897,7 +897,54 @@ async function comprarVIP(nivel, preco) {
         sincronizarDados();
     } catch (err) { toast("Erro de conexão"); }
 }
+async function carregarHistoricoFinanceiro() {
+    const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
+    if (!storageData) return;
+    const user = JSON.parse(storageData);
+    
+    const container = document.getElementById('lista-transacoes');
+    if (!container) return;
 
+    mostrarCarregando();
+    try {
+        const res = await fetch(`${API_URL}/api/transacoes/${user.id}`);
+        const transacoes = await res.json();
+
+        if (transacoes.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:gray; padding:20px;">Nenhuma transação encontrada.</p>';
+            return;
+        }
+
+        container.innerHTML = ""; // Limpa o conteúdo estático
+
+        transacoes.forEach(t => {
+            const isDeposito = t.tipo === 'deposito';
+            const corStatus = t.status === 'aprovado' ? '#00ff88' : (t.status === 'pendente' ? '#f1c40f' : '#ff4444');
+            const simbolo = isDeposito ? '+' : '-';
+            const titulo = isDeposito ? 'Depósito via IBAN' : 'Levantamento Solicitado';
+            const dataFormatada = new Date(t.data).toLocaleDateString('pt-BR');
+
+            container.innerHTML += `
+                <div class="transaction-card" style="background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid ${corStatus}; color: #333;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 12px; font-weight: bold; color: #666;">${titulo}</span>
+                        <b style="color: ${corStatus}; font-size: 10px; text-transform: uppercase;">${t.status}</b>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 8px;">
+                        <b style="font-size: 16px; color: ${isDeposito ? '#27ae60' : '#e74c3c'};">
+                            ${simbolo} ${parseFloat(t.valor).toLocaleString()} Kz
+                        </b>
+                        <span style="font-size: 11px; opacity: 0.6;">${dataFormatada}</span>
+                    </div>
+                    ${t.iban ? `<small style="display:block; font-size:10px; color:#888; margin-top:5px;">Destino: ${t.iban}</small>` : ''}
+                </div>`;
+        });
+    } catch (err) {
+        toast("Erro ao carregar histórico financeiro.");
+    } finally {
+        esconderCarregando();
+    }
+}
 async function confirmarRetirada() {
     console.log("Iniciando processo de levantamento...");
 
