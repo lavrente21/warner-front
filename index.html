@@ -485,52 +485,28 @@ async function carregarTarefasDoServidor() {
     }
 }
 
-           async function carregarHistoricoFinanceiro() {
-    const raw = localStorage.getItem('usuario') || localStorage.getItem('user');
-    if (!raw) return;
-    
-    const user = JSON.parse(raw);
+async function carregarHistoricoFinanceiro() {
+    const user = JSON.parse(localStorage.getItem('usuario'));
     const container = document.getElementById('lista-transacoes');
-    if (!container) return;
-
-    // Mostra um estado de carregamento
-    container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">Carregando histórico...</div>';
-
     try {
         const res = await fetch(`${API_URL}/api/historico/${user.id}`);
-        
-        if (!res.ok) throw new Error("Erro ao buscar dados do servidor");
-        
         const dados = await res.json();
-        container.innerHTML = ""; 
-
-        if (!dados || dados.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; color:gray;">Nenhum registo encontrado.</div>';
-            return;
-        }
-
-        dados.forEach(t => {
-            const isDep = t.tipo === 'deposito';
-            const cor = t.status === 'aprovado' ? '#00ff88' : (t.status === 'pendente' ? '#f1c40f' : '#ff4444');
-            
-            container.innerHTML += `
-                <div style="background:#fff; border-radius:10px; padding:15px; margin-bottom:10px; border-left:5px solid ${cor}; color:#333;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span style="font-size:12px; font-weight:bold; color:#666;">${isDep ? '📥 DEPÓSITO' : '📤 LEVANTAMENTO'}</span>
-                        <span style="font-size:10px; color:${cor}; font-weight:bold;">${t.status.toUpperCase()}</span>
+        container.innerHTML = dados.map(t => {
+            const isSaque = t.tipo === 'saque';
+            const cor = t.status === 'aprovado' ? '#27ae60' : (t.status === 'pendente' ? '#f1c40f' : '#e74c3c');
+            return `
+                <div style="background:#fff; border-radius:12px; padding:15px; margin-bottom:10px; border-left:5px solid ${isSaque ? '#e74c3c' : '#27ae60'};">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-weight:bold; font-size:12px;">${isSaque ? 'SAQUE' : 'RECARGA'}</span>
+                        <span style="color:${cor}; font-size:10px; font-weight:bold;">${t.status.toUpperCase()}</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                        <b style="font-size:16px;">${parseFloat(t.valor).toLocaleString()} Kz</b>
-                        <span style="font-size:11px; color:#999;">${new Date(t.data).toLocaleDateString()}</span>
+                    <div style="margin-top:10px;">
+                        <b style="font-size:16px;">${t.valor.toLocaleString()} Kz</b>
                     </div>
                 </div>`;
-        });
-    } catch (err) {
-        console.error("Erro ao carregar histórico:", err);
-        container.innerHTML = '<div style="text-align:center; padding:20px; color:#ff4444;">Erro de conexão com o servidor.</div>';
-        if(window.toast) toast("Erro ao carregar dados");
-    }
-}
+        }).join('');
+    } catch (e) { console.error(e); }
+                                              }
                                                                     
 // Função para enviar a conclusão para a rota correta
 async function concluirTarefa(tarefaId, btn) {
@@ -565,54 +541,25 @@ async function concluirTarefa(tarefaId, btn) {
     }
                 }
 async function carregarTarefasConcluidas() {
-    const rawUser = localStorage.getItem('usuario') || localStorage.getItem('user');
-    if (!rawUser) return;
-    
-    const user = JSON.parse(rawUser);
+    const user = JSON.parse(localStorage.getItem('usuario'));
     const container = document.getElementById('tarefas-concluidas');
-    if (!container) return;
-
     try {
-        const res = await fetch(`${API_URL}/api/historico/${user.id}`);
+        const res = await fetch(`${API_URL}/api/historico-tarefas/${user.id}`);
         const dados = await res.json();
-
-        if (!dados || dados.length === 0) {
-            container.innerHTML = '<p style="text-align:center; padding:20px; color:gray;">Você ainda não concluiu tarefas hoje.</p>';
-            return;
-        }
-
-        container.innerHTML = ""; 
-        
-        dados.forEach(item => {
-            // Criando o layout idêntico ao "Não concluído"
-            container.innerHTML += `
-                <div class="task-card">
-                    <div class="card-tag" style="background: #27ae60;">CONCLUÍDA</div>
-                    <div class="card-main">
-                        <div class="card-img">
-                            <i class="fa-brands fa-youtube" style="color: #555; font-size:30px;"></i>
-                        </div>
-                        <div class="card-details">
-                            <div>
-                                <p class="c-label">Recompensa</p>
-                                <p class="c-val">${item.valor} Kz</p>
-                            </div>
-                            <div>
-                                <p class="c-label">Data</p>
-                                <p class="c-val" style="font-size: 10px;">${new Date(item.data).toLocaleDateString()}</p>
-                            </div>
-                        </div>
+        container.innerHTML = dados.map(item => `
+            <div class="task-card">
+                <div class="card-tag" style="background: #27ae60;">CONCLUÍDA</div>
+                <div class="card-main">
+                    <div class="card-img"><i class="fa-brands fa-youtube" style="color:#555;"></i></div>
+                    <div class="card-details">
+                        <div><p class="c-label">Recompensa</p><p class="c-val">${item.valor} Kz</p></div>
                     </div>
-                    <button class="btn-action" style="background: #27ae60; cursor: default;" disabled>
-                        Concluído ✅
-                    </button>
-                </div>`;
-        });
-    } catch (err) {
-        console.error("Erro no front:", err);
-        container.innerHTML = '<p style="text-align:center; color:#ff4444;">Erro ao carregar histórico.</p>';
-    }
-}
+                </div>
+                <button class="btn-action" style="background:#27ae60; cursor:default;" disabled>Concluído ✅</button>
+            </div>
+        `).join('');
+    } catch (e) { console.error(e); }
+                                }
 
  
 async function completeTask(val, buttonEl) {
