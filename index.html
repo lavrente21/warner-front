@@ -852,46 +852,48 @@ async function carregarPlanosVIP() {
         const res = await fetch(`${API_URL}/api/vips`);
         const planos = await res.json();
         
-        // Obtém o nível atual do usuário do localStorage
         const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
-        const user = storageData ? JSON.parse(storageData) : null;
-        const nivelAtual = user ? (user.nivel_vip || 0) : 0;
+        if (!storageData) return;
+        const user = JSON.parse(storageData);
+        const nivelAtual = user.nivel_vip || 0;
 
         const container = document.getElementById('container-vips-lista');
         if(!container) return;
         container.innerHTML = "";
 
-        planos.forEach(p => {
-            // Verifica se o usuário já tem este nível ou superior
-            const jaAdquirido = nivelAtual >= p.nivel;
-            
-            // Define o botão: se já adquirido, mostra "Ativo", senão mostra o botão de compra
-            const acaoBotao = jaAdquirido 
-                ? `<div style="width: 100%; padding: 15px; background: #27ae60; color: white; text-align: center; font-weight: bold;">PLANO ATIVO <i class="fa-solid fa-check-double"></i></div>`
-                : `<button class="btn-confirm" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0; margin-top:0;">Desbloquear</button>`;
+        // Filtra para mostrar apenas o plano que o usuário possui no momento
+        const planoAtual = planos.find(p => p.nivel === nivelAtual);
 
-            container.innerHTML += `
-                <div class="vip-card" style="margin: 15px; background: white; border-radius:15px; overflow:hidden; border: ${jaAdquirido ? '2px solid #27ae60' : 'none'};">
-                    <div class="card-tag" style="background: ${jaAdquirido ? '#27ae60' : 'gold'}; color: ${jaAdquirido ? 'white' : 'black'}; padding:5px 10px; float:right; font-weight:bold;">
-                        ${jaAdquirido ? 'ADQUIRIDO' : p.nome}
-                    </div>
-                    <div class="card-main" style="flex-direction: column; align-items: flex-start; padding: 20px;">
-                        <div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px;">
-                            <span style="color: #666;">Preço:</span>
-                            <b style="color: #333; font-size:18px;">${jaAdquirido ? '---' : parseFloat(p.preco).toLocaleString() + ' Kz'}</b>
+        if (planoAtual) {
+            container.innerHTML = `
+                <div class="task-card" style="border-left: 5px solid gold; margin: 15px;">
+                    <div class="card-tag" style="background: gold; color: #000;">ATIVO</div>
+                    <div class="card-main">
+                        <div class="card-img">
+                            <i class="fa-solid fa-crown" style="color: gold; font-size: 30px;"></i>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; font-size: 13px;">
-                            <div style="background: #f4f4f4; color:#333; padding: 10px; border-radius: 8px; text-align:center;">Nível ${p.nivel}</div>
-                            <div style="background: #f4f4f4; color:#333; padding: 10px; border-radius: 8px; text-align:center;">${p.qtd_tarefas} Tarefas</div>
+                        <div class="card-details">
+                            <div>
+                                <p class="c-label">Plano Atual</p>
+                                <p class="c-val">${planoAtual.nome}</p>
+                            </div>
+                            <div>
+                                <p class="c-label">Tarefas Diárias</p>
+                                <p class="c-val">${planoAtual.qtd_tarefas}</p>
+                            </div>
                         </div>
                     </div>
-                    ${acaoBotao}
+                    <div style="text-align: center; padding: 10px; background: rgba(255,215,0,0.1); color: gold; font-weight: bold; font-size: 12px; border-radius: 0 0 12px 12px;">
+                        <i class="fa-solid fa-circle-check"></i> Benefícios Desbloqueados
+                    </div>
                 </div>`;
-        });
+        } else {
+            container.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Nenhum plano VIP ativo encontrado.</p>";
+        }
     } catch (err) { 
-        console.error("Erro ao carregar VIPs:", err); 
+        console.error("Erro ao carregar VIP:", err); 
     }
-                                                               }
+}
 
 async function comprarVIP(nivel, preco) {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
