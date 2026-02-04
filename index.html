@@ -347,9 +347,11 @@
                 <p style="font-size: 11px;">Valor a enviar: <b id="valor-confirmado" style="color: green;"></b></p>
             </div>
 
-            <div class="input-group" style="margin-top: 20px;">
-                <label>Anexe a Foto do Comprovativo</label>
-                <input type="file" id="comprovativo-img" accept="image/*" style="background: #fff; color: #333; width: 100%; border-radius: 8px; padding: 8px;">
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+    <i class="fa-solid fa-cloud-arrow-up" style="font-size: 40px; color: #ccc;"></i>
+    <p id="upload-text">Clique para enviar o comprovativo</p>
+    <input type="file" id="file-input" style="display: none;" accept="image/*" onchange="processarImagem(this)">
+    <input type="hidden" id="comprovativo-base64">
             </div>
 <button class="btn-action" onclick="confirmarDeposito()">Já enviei o comprovativo</button>
             <button class="btn-action" style="background: none; border: 1px solid #555; color: #fff; margin-top: 10px;" onclick="voltarPasso1()">Voltar</button>
@@ -373,7 +375,7 @@
                 <span>IBAN: AO06 0040 0000 1234 5678 9012</span>
             </div>
             <div class="code-display" style="background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 5px; color: #333;">
-                <span>Titular: ZEROmallS</span>
+                <span>Titular: </span>
             </div>
         </div>
         <button class="btn-confirm" onclick="toast('Depósito em análise!')">Confirmar Depósito</button>
@@ -890,12 +892,29 @@ async function comprarVIP(nivel, preco) {
         sincronizarDados();
     } catch (err) { toast("Erro de conexão"); }
 }
+// Transforma a foto em texto para enviar ao servidor
+function processarImagem(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('comprovativo-base64').value = e.target.result;
+            document.getElementById('upload-text').innerText = "✅ Imagem selecionada!";
+            document.getElementById('upload-text').style.color = "#27ae60";
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+// Envia os dados para o banco de dados
 async function confirmarDeposito() {
     const user = JSON.parse(localStorage.getItem('usuario'));
     const valor = document.getElementById('deposito-valor').value;
-    const comprovativo = document.getElementById('comprovativo-base64').value; // Certifique-se que tem este campo ou lógica
+    const comprovativo = document.getElementById('comprovativo-base64').value;
 
-    if (!comprovativo) return toast("Por favor, anexe o comprovativo.");
+    if (!comprovativo) {
+        return toast("Por favor, selecione a foto do comprovativo.");
+    }
 
     try {
         showLoading(true);
@@ -910,11 +929,16 @@ async function confirmarDeposito() {
         });
 
         const dados = await res.json();
+
         if (dados.success) {
-            toast("Recarga enviada para análise!");
-            showPage('pg-lar'); // Volta para a página inicial
+            toast("Recarga enviada! Aguarde a aprovação.");
+            showPage('pg-lar');
+            // Limpa o formulário
+            document.getElementById('deposito-valor').value = '';
+            document.getElementById('comprovativo-base64').value = '';
+            voltarPasso1(); 
         } else {
-            toast("Erro ao enviar recarga.");
+            toast("Erro ao enviar: " + dados.error);
         }
     } catch (err) {
         toast("Erro de conexão com o servidor.");
