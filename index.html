@@ -581,27 +581,39 @@ async function carregarTarefasConcluidas() {
             return;
         }
 
-        container.innerHTML = ""; // Limpa o estado anterior
+        container.innerHTML = ""; 
         
         dados.forEach(item => {
-            // Usamos item.titulo e item.valor conforme definido no SQL acima
+            // Criando o layout idêntico ao "Não concluído"
             container.innerHTML += `
-                <div class="task-card" style="border-left: 4px solid #00ff88; margin-bottom:12px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px;">
-                    <div class="card-main" style="display:flex; align-items:center;">
-                        <i class="fa-solid fa-circle-check" style="color:#00ff88; font-size:24px; margin-right:15px;"></i>
-                        <div>
-                            <p style="margin:0; font-weight:bold; color:white; font-size:14px;">${item.titulo}</p>
-                            <p style="margin:0; color:#00ff88; font-size:13px; font-weight:600;">+ ${item.valor} Kz</p>
-                            <small style="color:#888; font-size:11px;">Concluída em: ${new Date(item.data).toLocaleDateString('pt-BR')}</small>
+                <div class="task-card">
+                    <div class="card-tag" style="background: #27ae60;">CONCLUÍDA</div>
+                    <div class="card-main">
+                        <div class="card-img">
+                            <i class="fa-brands fa-youtube" style="color: #555; font-size:30px;"></i>
+                        </div>
+                        <div class="card-details">
+                            <div>
+                                <p class="c-label">Recompensa</p>
+                                <p class="c-val">${item.valor} Kz</p>
+                            </div>
+                            <div>
+                                <p class="c-label">Data</p>
+                                <p class="c-val" style="font-size: 10px;">${new Date(item.data).toLocaleDateString()}</p>
+                            </div>
                         </div>
                     </div>
+                    <button class="btn-action" style="background: #27ae60; cursor: default;" disabled>
+                        Concluído ✅
+                    </button>
                 </div>`;
         });
     } catch (err) {
         console.error("Erro no front:", err);
         container.innerHTML = '<p style="text-align:center; color:#ff4444;">Erro ao carregar histórico.</p>';
     }
-            }
+}
+
  
 async function completeTask(val, buttonEl) {
   if (!buttonEl) return;
