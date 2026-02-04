@@ -908,33 +908,28 @@ async function renderizarTarefasDoDia() {
         console.error("Erro ao carregar VIPs:", err); 
     }
            }
-           async function carregarVipsHome() {
+async function carregarVipsHome() {
+    const container = document.getElementById('container-vips-home');
+    if (!container) return;
+
     try {
         const res = await fetch(`${API_URL}/api/vips`);
         const planos = await res.json();
         
-        const container = document.getElementById('lista-vips-home'); // Certifique-se que este ID existe na sua Home
-        if(!container) return;
         container.innerHTML = "";
-
-        // Pega apenas os 3 primeiros planos
-        const apenasTres = planos.slice(0, 3);
-
-        apenasTres.forEach(p => {
+        // slice(0, 3) garante que só apareçam 3 na home
+        planos.slice(0, 3).forEach(p => {
             container.innerHTML += `
-                <div class="vip-item-simple" onclick="showPage('pg-vip')" style="padding:10px; background:#fff; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; border: 1px solid #eee;">
+                <div class="vip-card-home" onclick="showPage('pg-vip')" style="background:#fff; padding:12px; margin:10px; border-radius:12px; display:flex; justify-content:space-between; align-items:center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
                     <div style="display:flex; align-items:center; gap:10px;">
-                         <i class="fa-solid fa-gem" style="color:gold;"></i>
-                         <span>${p.nome}</span>
+                        <i class="fa-solid fa-gem" style="color:gold;"></i>
+                        <span style="font-weight:600;">${p.nome}</span>
                     </div>
-                    <span style="font-weight:bold; color:#6a3ab2;">${parseFloat(p.preco).toLocaleString()} Kz</span>
+                    <span style="color:#6a3ab2; font-weight:bold;">${parseFloat(p.preco).toLocaleString()} Kz</span>
                 </div>`;
         });
-    } catch (err) {
-        console.log("Erro na home vips:", err);
-    }
-           }
-
+    } catch (err) { console.error("Erro VIP Home:", err); }
+}
 async function comprarVIP(nivel, preco) {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return toast("⚠️ Faça login!");
