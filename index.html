@@ -715,7 +715,39 @@ async function enviarImagemSuporte(input) {
         toast("Erro ao enviar foto."); 
     }
 }
+async function adquirirVIP(nivel, preco) {
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    
+    // --- CORREÇÃO NO FRONT-END ---
+    if (parseFloat(user.saldo) < parseFloat(preco)) {
+        toast("Saldo insuficiente para este VIP!");
+        return;
+    }
+    // ----------------------------
 
+    if (!confirm(`Confirmar compra do VIP ${nivel} por ${preco} Kz?`)) return;
+
+    mostrarCarregando();
+    try {
+        const res = await fetch(`${API_URL}/api/comprar-vip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario_id: user.id, nivel_vip: nivel })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            toast(data.message);
+            sincronizarDados(); // Atualiza o saldo na tela
+        } else {
+            toast(data.error);
+        }
+    } catch (err) {
+        toast("Erro na conexão");
+    } finally {
+        esconderCarregando();
+    }
+}
 async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
