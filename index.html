@@ -914,20 +914,38 @@ async function carregarVipsHome() {
         const res = await fetch(`${API_URL}/api/vips`);
         const planos = await res.json();
         
+        // Recupera o nível do usuário logado
+        const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
+        const user = storageData ? JSON.parse(storageData) : {};
+        const nivelAtual = user.nivel_vip || 0; // Padrão 0 se não encontrar
+
         container.innerHTML = "";
-        // Exibe os primeiros 3 planos com o estilo da página VIP
+        
+        // Exibe os primeiros 3 planos com estilo idêntico à VIP List
         planos.slice(0, 3).forEach(p => {
+            const eOPlanoAtual = p.nivel <= nivelAtual; // Verifica se já possui este nível ou superior
+            
+            // Define o texto e estilo do botão dinamicamente
+            const botaoTexto = eOPlanoAtual ? 'Desbloqueado ✅' : 'Desbloquear';
+            const botaoEstilo = eOPlanoAtual ? 'background:#27ae60; cursor:default;' : '';
+            const botaoAtributo = eOPlanoAtual ? 'disabled' : `onclick="comprarVIP(${p.nivel}, ${p.preco})"`;
+            const iconeCadeado = eOPlanoAtual ? 'fa-gem' : 'fa-lock';
+            const corBorda = eOPlanoAtual ? '#27ae60' : '#6a3ab2';
+
             container.innerHTML += `
-                <div class="task-card" onclick="showPage('pg-vip')" style="margin: 15px; border-left: 5px solid #6a3ab2; cursor: pointer;">
-                    <div class="card-tag" style="background: #6a3ab2;">VIP ${p.nivel}</div>
+                <div class="task-card" style="margin: 15px; border-left: 5px solid ${corBorda};">
+                    <div class="card-tag" style="background: ${corBorda};">
+                        ${eOPlanoAtual ? 'PLANO ATIVO' : 'VIP ' + p.nivel}
+                    </div>
                     <div class="card-main">
                         <div class="card-img">
-                            <i class="fa-solid fa-gem" style="color: gold; font-size: 30px;"></i>
+                            <i class="fa-solid ${iconeCadeado}" 
+                               style="color: ${eOPlanoAtual ? '#27ae60' : '#ccc'}; font-size: 30px;"></i>
                         </div>
                         <div class="card-details">
                             <div>
-                                <p class="c-label">Preço</p>
-                                <p class="c-val">${parseFloat(p.preco).toLocaleString()} Kz</p>
+                                <p class="c-label">${eOPlanoAtual ? 'Status' : 'Preço'}</p>
+                                <p class="c-val">${eOPlanoAtual ? 'Ativo' : parseFloat(p.preco).toLocaleString() + ' Kz'}</p>
                             </div>
                             <div>
                                 <p class="c-label">Tarefas</p>
@@ -935,13 +953,15 @@ async function carregarVipsHome() {
                             </div>
                         </div>
                     </div>
-                    <button class="btn-action">Ver Plano</button>
+                    <button class="btn-action" style="${botaoEstilo}" ${botaoAtributo}>
+                        ${botaoTexto}
+                    </button>
                 </div>`;
         });
     } catch (err) { 
         console.error("Erro ao carregar VIPs na Home:", err); 
     }
-}
+            }
 async function comprarVIP(nivel, preco) {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return toast("⚠️ Faça login!");
