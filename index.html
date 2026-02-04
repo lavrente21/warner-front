@@ -906,7 +906,8 @@ async function renderizarTarefasDoDia() {
         console.error("Erro ao carregar VIPs:", err); 
     }
            }
-async function carregarVipsHome() {
+
+        async function carregarVipsHome() {
     const container = document.getElementById('container-vips-home');
     if (!container) return;
 
@@ -914,38 +915,38 @@ async function carregarVipsHome() {
         const res = await fetch(`${API_URL}/api/vips`);
         const planos = await res.json();
         
-        // Recupera o nível do usuário logado
+        // Recupera o nível do usuário logado do localStorage
         const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
         const user = storageData ? JSON.parse(storageData) : {};
-        const nivelAtual = user.nivel_vip || 0; // Padrão 0 se não encontrar
+        const nivelAtual = user.nivel_vip || 0; 
 
         container.innerHTML = "";
         
-        // Exibe os primeiros 3 planos com estilo idêntico à VIP List
+        // Exibe os primeiros 3 planos no pg-lar
         planos.slice(0, 3).forEach(p => {
-            const eOPlanoAtual = p.nivel <= nivelAtual; // Verifica se já possui este nível ou superior
+            // Regra: Apenas o nível EXATO do usuário aparece como desbloqueado
+            const eOPlanoAtivo = p.nivel === nivelAtual; 
             
-            // Define o texto e estilo do botão dinamicamente
-            const botaoTexto = eOPlanoAtual ? 'Desbloqueado ✅' : 'Desbloquear';
-            const botaoEstilo = eOPlanoAtual ? 'background:#27ae60; cursor:default;' : '';
-            const botaoAtributo = eOPlanoAtual ? 'disabled' : `onclick="comprarVIP(${p.nivel}, ${p.preco})"`;
-            const iconeCadeado = eOPlanoAtual ? 'fa-gem' : 'fa-lock';
-            const corBorda = eOPlanoAtual ? '#27ae60' : '#6a3ab2';
+            const botaoTexto = eOPlanoAtivo ? 'Desbloqueado ✅' : 'Desbloquear';
+            const botaoEstilo = eOPlanoAtivo ? 'background:#27ae60; cursor:default;' : '';
+            const botaoAtributo = eOPlanoAtivo ? 'disabled' : `onclick="comprarVIP(${p.nivel}, ${p.preco})"`;
+            const corBorda = eOPlanoAtivo ? '#27ae60' : '#6a3ab2';
+            const iconeDinamico = eOPlanoAtivo ? 'fa-crown' : 'fa-lock';
 
             container.innerHTML += `
                 <div class="task-card" style="margin: 15px; border-left: 5px solid ${corBorda};">
                     <div class="card-tag" style="background: ${corBorda};">
-                        ${eOPlanoAtual ? 'PLANO ATIVO' : 'VIP ' + p.nivel}
+                        ${eOPlanoAtivo ? 'PLANO ATUAL' : 'VIP ' + p.nivel}
                     </div>
                     <div class="card-main">
                         <div class="card-img">
-                            <i class="fa-solid ${iconeCadeado}" 
-                               style="color: ${eOPlanoAtual ? '#27ae60' : '#ccc'}; font-size: 30px;"></i>
+                            <i class="fa-solid ${iconeDinamico}" 
+                               style="color: ${eOPlanoAtivo ? '#27ae60' : '#ccc'}; font-size: 30px;"></i>
                         </div>
                         <div class="card-details">
                             <div>
-                                <p class="c-label">${eOPlanoAtual ? 'Status' : 'Preço'}</p>
-                                <p class="c-val">${eOPlanoAtual ? 'Ativo' : parseFloat(p.preco).toLocaleString() + ' Kz'}</p>
+                                <p class="c-label">${eOPlanoAtivo ? 'Status' : 'Preço'}</p>
+                                <p class="c-val">${eOPlanoAtivo ? 'Ativo' : parseFloat(p.preco).toLocaleString() + ' Kz'}</p>
                             </div>
                             <div>
                                 <p class="c-label">Tarefas</p>
@@ -961,7 +962,8 @@ async function carregarVipsHome() {
     } catch (err) { 
         console.error("Erro ao carregar VIPs na Home:", err); 
     }
-            }
+        }
+           
 async function comprarVIP(nivel, preco) {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return toast("⚠️ Faça login!");
