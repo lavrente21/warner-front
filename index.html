@@ -846,8 +846,7 @@ async function renderizarTarefasDoDia() {
         container.innerHTML = "<p style='text-align:center; padding:20px; color:red;'>Erro ao conectar com a API.</p>";
     }
 }
-
-async function carregarPlanosVIP() {
+           async function carregarPlanosVIP() {
     try {
         const res = await fetch(`${API_URL}/api/vips`);
         const planos = await res.json();
@@ -861,39 +860,51 @@ async function carregarPlanosVIP() {
         if(!container) return;
         container.innerHTML = "";
 
-        // Filtra para mostrar apenas o plano que o usuário possui no momento
-        const planoAtual = planos.find(p => p.nivel === nivelAtual);
+        planos.forEach(p => {
+            const eOPlanoAtual = p.nivel === nivelAtual;
 
-        if (planoAtual) {
-            container.innerHTML = `
-                <div class="task-card" style="border-left: 5px solid gold; margin: 15px;">
-                    <div class="card-tag" style="background: gold; color: #000;">ATIVO</div>
-                    <div class="card-main">
-                        <div class="card-img">
-                            <i class="fa-solid fa-crown" style="color: gold; font-size: 30px;"></i>
-                        </div>
-                        <div class="card-details">
-                            <div>
-                                <p class="c-label">Plano Atual</p>
-                                <p class="c-val">${planoAtual.nome}</p>
+            if (eOPlanoAtual) {
+                // ESTILO DESBLOQUEADO (Igual às tarefas)
+                container.innerHTML += `
+                    <div class="task-card" style="border-left: 5px solid #27ae60; margin: 15px; background: #fff;">
+                        <div class="card-tag" style="background: #27ae60; color: #fff;">ATIVO</div>
+                        <div class="card-main">
+                            <div class="card-img">
+                                <i class="fa-solid fa-crown" style="color: #27ae60; font-size: 30px;"></i>
                             </div>
-                            <div>
-                                <p class="c-label">Tarefas Diárias</p>
-                                <p class="c-val">${planoAtual.qtd_tarefas}</p>
+                            <div class="card-details">
+                                <div><p class="c-label">Seu Plano</p><p class="c-val">${p.nome}</p></div>
+                                <div><p class="c-label">Tarefas</p><p class="c-val">${p.qtd_tarefas}</p></div>
                             </div>
                         </div>
-                    </div>
-                    <div style="text-align: center; padding: 10px; background: rgba(255,215,0,0.1); color: gold; font-weight: bold; font-size: 12px; border-radius: 0 0 12px 12px;">
-                        <i class="fa-solid fa-circle-check"></i> Benefícios Desbloqueados
-                    </div>
-                </div>`;
-        } else {
-            container.innerHTML = "<p style='text-align:center; color:gray; padding:20px;'>Nenhum plano VIP ativo encontrado.</p>";
-        }
+                        <div style="text-align: center; padding: 10px; color: #27ae60; font-weight: bold; font-size: 12px;">
+                            <i class="fa-solid fa-lock-open"></i> Benefícios Liberados
+                        </div>
+                    </div>`;
+            } else {
+                // ESTILO PARA DESBLOQUEAR (Outros planos)
+                container.innerHTML += `
+                    <div class="task-card" style="margin: 15px; background: #f9f9f9; opacity: 0.8;">
+                        <div class="card-tag" style="background: #666; color: #fff;">NÍVEL ${p.nivel}</div>
+                        <div class="card-main">
+                            <div class="card-img">
+                                <i class="fa-solid fa-lock" style="color: #ccc; font-size: 30px;"></i>
+                            </div>
+                            <div class="card-details">
+                                <div><p class="c-label">Preço</p><p class="c-val">${parseFloat(p.preco).toLocaleString()} Kz</p></div>
+                                <div><p class="c-label">Tarefas</p><p class="c-val">${p.qtd_tarefas}</p></div>
+                            </div>
+                        </div>
+                        <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})" style="width: 100%; border-radius: 0 0 12px 12px; margin-top:0;">
+                            Desbloquear VIP ${p.nivel}
+                        </button>
+                    </div>`;
+            }
+        });
     } catch (err) { 
-        console.error("Erro ao carregar VIP:", err); 
+        console.error("Erro ao carregar VIPs:", err); 
     }
-}
+           }
 
 async function comprarVIP(nivel, preco) {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
