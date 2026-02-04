@@ -912,12 +912,16 @@ async function confirmarDeposito() {
     const valor = document.getElementById('deposito-valor').value;
     const comprovativo = document.getElementById('comprovativo-base64').value;
 
+    if (!valor || valor < 5000) {
+        return toast("Valor mínimo de 5.000 Kz");
+    }
+
     if (!comprovativo) {
         return toast("Por favor, selecione a foto do comprovativo.");
     }
 
     try {
-        showLoading(true);
+        mostrarCarregando(); // Usa o nome correto da função
         const res = await fetch(`${API_URL}/api/deposito`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -930,20 +934,24 @@ async function confirmarDeposito() {
 
         const dados = await res.json();
 
-        if (dados.success) {
-            toast("Recarga enviada! Aguarde a aprovação.");
-            showPage('pg-lar');
+        if (res.ok && dados.success) {
+            toast("✅ Recarga enviada! Aguarde a aprovação.");
             // Limpa o formulário
             document.getElementById('deposito-valor').value = '';
             document.getElementById('comprovativo-base64').value = '';
+            document.getElementById('upload-text').innerText = "Clique para enviar o comprovativo";
+            document.getElementById('upload-text').style.color = "#ccc";
+            
             voltarPasso1(); 
+            showPage('pg-lar');
         } else {
-            toast("Erro ao enviar: " + dados.error);
+            toast("❌ Erro: " + (dados.error || "Falha no servidor"));
         }
     } catch (err) {
-        toast("Erro de conexão com o servidor.");
+        console.error(err);
+        toast("❌ Erro de conexão com o servidor.");
     } finally {
-        showLoading(false);
+        esconderCarregando(); // Garante que o loading saia, mesmo se der erro
     }
 }
 async function confirmarRetirada() {
