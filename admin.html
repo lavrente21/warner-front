@@ -172,7 +172,7 @@ const API_URL = "https://warnermida-1.onrender.com";
     }
 
     // --- GESTÃO DE LEVANTAMENTOS ---
-    async function carregarLevantamentos() {
+ async function carregarLevantamentos() {
     const tbody = document.getElementById('lista-saques');
     try {
         // Rota corrigida para bater com o backend
@@ -201,8 +201,7 @@ const API_URL = "https://warnermida-1.onrender.com";
         console.error("Erro ao carregar saques:", e);
         tbody.innerHTML = "<tr><td colspan='4'>Erro ao conectar com o servidor.</td></tr>";
     }
-    }
-
+                }
 async function carregarVipsAdmin() {
     const container = document.getElementById('lista-vips-admin');
     try {
