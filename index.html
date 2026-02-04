@@ -442,6 +442,13 @@ function showPage(id, el) {
 
     // 5. Roda as funções de carregar dados da API
     if (id === 'pg-vip') carregarPlanosVIP();
+    if(pageId === 'pg-lar') {
+        carregarVipsHome(); // Carrega só 3
+    }
+    if(pageId === 'pg-vip') {
+        carregarPlanosVIP(); // Carrega todos
+    }
+}
  if (id === 'pg-tarefa') carregarTarefasDoServidor();
     if (id === 'pg-meu') sincronizarDados();
 if (id === 'pg-historico') carregarHistoricoFinanceiro();
@@ -859,8 +866,7 @@ async function renderizarTarefasDoDia() {
         const planos = await res.json();
         
         const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
-        if (!storageData) return;
-        const user = JSON.parse(storageData);
+        const user = storageData ? JSON.parse(storageData) : {};
         const nivelAtual = user.nivel_vip || 0;
 
         const container = document.getElementById('container-vips-lista');
@@ -869,48 +875,64 @@ async function renderizarTarefasDoDia() {
 
         planos.forEach(p => {
             const eOPlanoAtual = p.nivel === nivelAtual;
+            
+            // Botão estilo tarefa: Verde se já tem, padrão se não tem
+            const acaoHtml = eOPlanoAtual 
+                ? `<button class="btn-action" style="background:#27ae60; cursor:default;" disabled>Desbloqueado ✅</button>`
+                : `<button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})">Desbloquear</button>`;
 
-            if (eOPlanoAtual) {
-                // ESTILO DESBLOQUEADO (Igual às tarefas)
-                container.innerHTML += `
-                    <div class="task-card" style="border-left: 5px solid #27ae60; margin: 15px; background: #fff;">
-                        <div class="card-tag" style="background: #27ae60; color: #fff;">ATIVO</div>
-                        <div class="card-main">
-                            <div class="card-img">
-                                <i class="fa-solid fa-crown" style="color: #27ae60; font-size: 30px;"></i>
+            container.innerHTML += `
+                <div class="task-card" style="margin: 15px; border-left: 5px solid ${eOPlanoAtual ? '#27ae60' : '#6a3ab2'};">
+                    <div class="card-tag" style="background: ${eOPlanoAtual ? '#27ae60' : '#6a3ab2'};">
+                        ${eOPlanoAtual ? 'PLANO ATUAL' : 'VIP ' + p.nivel}
+                    </div>
+                    <div class="card-main">
+                        <div class="card-img">
+                            <i class="fa-solid ${eOPlanoAtual ? 'fa-crown' : 'fa-lock'}" 
+                               style="color: ${eOPlanoAtual ? '#27ae60' : '#ccc'}; font-size: 30px;"></i>
+                        </div>
+                        <div class="card-details">
+                            <div>
+                                <p class="c-label">${eOPlanoAtual ? 'Status' : 'Preço'}</p>
+                                <p class="c-val">${eOPlanoAtual ? 'Ativo' : parseFloat(p.preco).toLocaleString() + ' Kz'}</p>
                             </div>
-                            <div class="card-details">
-                                <div><p class="c-label">Seu Plano</p><p class="c-val">${p.nome}</p></div>
-                                <div><p class="c-label">Tarefas</p><p class="c-val">${p.qtd_tarefas}</p></div>
+                            <div>
+                                <p class="c-label">Tarefas</p>
+                                <p class="c-val">${p.qtd_tarefas} Diárias</p>
                             </div>
                         </div>
-                        <div style="text-align: center; padding: 10px; color: #27ae60; font-weight: bold; font-size: 12px;">
-                            <i class="fa-solid fa-lock-open"></i> VIP ${p.nivel} Desbloqueado
-                        </div>
-                    </div>`;
-            } else {
-                // ESTILO PARA DESBLOQUEAR (Outros planos)
-                container.innerHTML += `
-                    <div class="task-card" style="margin: 15px; background: #f9f9f9; opacity: 0.8;">
-                        <div class="card-tag" style="background: #666; color: #fff;">NÍVEL ${p.nivel}</div>
-                        <div class="card-main">
-                            <div class="card-img">
-                                <i class="fa-solid fa-lock" style="color: #ccc; font-size: 30px;"></i>
-                            </div>
-                            <div class="card-details">
-                                <div><p class="c-label">Preço</p><p class="c-val">${parseFloat(p.preco).toLocaleString()} Kz</p></div>
-                                <div><p class="c-label">Tarefas</p><p class="c-val">${p.qtd_tarefas}</p></div>
-                            </div>
-                        </div>
-                        
-                        <button class="btn-action" onclick="comprarVIP(${p.nivel}, ${p.preco})  style="width: 100%; border-radius: 0 0 12px 12px; margin-top:0;">
-                            Desbloquear VIP ${p.nivel}
-                        </button>
-                    </div>`;
-            }
+                    </div>
+                    ${acaoHtml}
+                </div>`;
         });
     } catch (err) { 
         console.error("Erro ao carregar VIPs:", err); 
+    }
+           }
+           async function carregarVipsHome() {
+    try {
+        const res = await fetch(`${API_URL}/api/vips`);
+        const planos = await res.json();
+        
+        const container = document.getElementById('lista-vips-home'); // Certifique-se que este ID existe na sua Home
+        if(!container) return;
+        container.innerHTML = "";
+
+        // Pega apenas os 3 primeiros planos
+        const apenasTres = planos.slice(0, 3);
+
+        apenasTres.forEach(p => {
+            container.innerHTML += `
+                <div class="vip-item-simple" onclick="showPage('pg-vip')" style="padding:10px; background:#fff; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; border: 1px solid #eee;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                         <i class="fa-solid fa-gem" style="color:gold;"></i>
+                         <span>${p.nome}</span>
+                    </div>
+                    <span style="font-weight:bold; color:#6a3ab2;">${parseFloat(p.preco).toLocaleString()} Kz</span>
+                </div>`;
+        });
+    } catch (err) {
+        console.log("Erro na home vips:", err);
     }
            }
 
