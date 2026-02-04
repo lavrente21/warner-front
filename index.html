@@ -891,7 +891,38 @@ async function comprarVIP(nivel, preco) {
         sincronizarDados();
     } catch (err) { toast("Erro de conexão"); }
 }
+async function confirmarDeposito() {
+    const user = JSON.parse(localStorage.getItem('usuario'));
+    const valor = document.getElementById('deposito-valor').value;
+    const comprovativo = document.getElementById('comprovativo-base64').value; // Certifique-se que tem este campo ou lógica
 
+    if (!comprovativo) return toast("Por favor, anexe o comprovativo.");
+
+    try {
+        showLoading(true);
+        const res = await fetch(`${API_URL}/api/deposito`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                usuario_id: user.id,
+                valor: valor,
+                comprovativo: comprovativo
+            })
+        });
+
+        const dados = await res.json();
+        if (dados.success) {
+            toast("Recarga enviada para análise!");
+            showPage('pg-lar'); // Volta para a página inicial
+        } else {
+            toast("Erro ao enviar recarga.");
+        }
+    } catch (err) {
+        toast("Erro de conexão com o servidor.");
+    } finally {
+        showLoading(false);
+    }
+}
 async function confirmarRetirada() {
     console.log("Iniciando processo de levantamento...");
 
