@@ -715,39 +715,7 @@ async function enviarImagemSuporte(input) {
         toast("Erro ao enviar foto."); 
     }
 }
-async function adquirirVIP(nivel, preco) {
-    const user = JSON.parse(localStorage.getItem('usuario'));
-    
-    // --- CORREÇÃO NO FRONT-END ---
-    if (parseFloat(user.saldo) < parseFloat(preco)) {
-        toast("Saldo insuficiente para este VIP!");
-        return;
-    }
-    // ----------------------------
 
-    if (!confirm(`Confirmar compra do VIP ${nivel} por ${preco} Kz?`)) return;
-
-    mostrarCarregando();
-    try {
-        const res = await fetch(`${API_URL}/api/comprar-vip`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id, nivel_vip: nivel })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-            toast(data.message);
-            sincronizarDados(); // Atualiza o saldo na tela
-        } else {
-            toast(data.error);
-        }
-    } catch (err) {
-        toast("Erro na conexão");
-    } finally {
-        esconderCarregando();
-    }
-}
 async function carregarHistoricoSuporte() {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return;
@@ -999,34 +967,41 @@ async function renderizarTarefasDoDia() {
 async function comprarVIP(nivel, preco) {
     const storageData = localStorage.getItem('usuario') || localStorage.getItem('user');
     if(!storageData) return toast("⚠️ Faça login!");
+    
     const user = JSON.parse(storageData);
+
+    // --- NOVA VALIDAÇÃO LOCAL ---
+    if (parseFloat(user.saldo) < parseFloat(preco)) {
+        return toast(`❌ Saldo insuficiente! (Saldo: ${user.saldo} Kz)`);
+    }
+    // ----------------------------
+
+    if (!confirm(`Deseja comprar o VIP ${nivel} por ${preco} Kz?`)) return;
+
     toast("Processando...");
     try {
         const res = await fetch(`${API_URL}/api/comprar-vip`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usuario_id: user.id, nivel_vip: nivel, valor_pago: preco })
+            body: JSON.stringify({ 
+                usuario_id: user.id, 
+                nivel_vip: nivel, 
+                valor_pago: preco 
+            })
         });
+        
         const data = await res.json();
-        if (!res.ok) return toast("❌ " + (data.error || "Erro"));
+        
+        if (!res.ok) {
+            return toast("❌ " + (data.error || "Erro na compra"));
+        }
+
         toast(`✅ VIP ${nivel} Ativado!`);
-        sincronizarDados();
-    } catch (err) { toast("Erro de conexão"); }
-}
-// Transforma a foto em texto para enviar ao servidor
-function processarImagem(input) {
-    const file = input.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('comprovativo-base64').value = e.target.result;
-            document.getElementById('upload-text').innerText = "✅ Imagem selecionada!";
-            document.getElementById('upload-text').style.color = "#27ae60";
-        };
-        reader.readAsDataURL(file);
+        sincronizarDados(); // Esta função deve atualizar o localStorage com o novo saldo
+    } catch (err) { 
+        toast("Erro de conexão"); 
     }
 }
-
 // Envia os dados para o banco de dados
 async function confirmarDeposito() {
     const user = JSON.parse(localStorage.getItem('usuario'));
