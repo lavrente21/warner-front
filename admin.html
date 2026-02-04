@@ -173,31 +173,35 @@ const API_URL = "https://warnermida-1.onrender.com";
 
     // --- GESTÃO DE LEVANTAMENTOS ---
     async function carregarLevantamentos() {
-        const tbody = document.getElementById('lista-saques');
-        try {
-            const res = await fetch(`${API_URL}/api/admin/saques-pendentes`);
-            const saques = await res.json();
-            tbody.innerHTML = "";
-            saques.forEach(s => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td><b>${s.nome_titular}</b></td>
-                        <td style="color:red;">${s.valor} Kz</td>
-                        <td>${s.iban}<br><small>${s.banco}</small></td>
-                        <td>
-                            <button onclick="processarSaque('${s.id}', 'pago')" style="background:#27ae60; color:white; border:none; padding:5px; cursor:pointer;">Pagar</button>
-                            <button onclick="processarSaque('${s.id}', 'rejeitado')" style="background:#666; color:white; border:none; padding:5px; cursor:pointer;">Recusar</button>
-                        </td>
-                    </tr>`;
-            });
-        } catch(e) { }
+    const tbody = document.getElementById('lista-saques');
+    try {
+        // Rota corrigida para bater com o backend
+        const res = await fetch(`${API_URL}/api/admin/saques-pendentes`);
+        const saques = await res.json();
+        
+        tbody.innerHTML = "";
+        if (saques.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='4'>Nenhum saque pendente.</td></tr>";
+            return;
+        }
+
+        saques.forEach(s => {
+            tbody.innerHTML += `
+                <tr>
+                    <td><b>${s.nome || s.nome_titular}</b><br><small>${s.email || ''}</small></td>
+                    <td style="color:red; font-weight:bold;">${s.valor} Kz</td>
+                    <td>${s.iban}</td>
+                    <td>
+                        <button onclick="processarSaque('${s.id}', 'pago')" style="background:#27ae60; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer; margin-right:5px;">Pagar</button>
+                        <button onclick="processarSaque('${s.id}', 'rejeitado')" style="background:#e74c3c; color:white; border:none; padding:8px; border-radius:4px; cursor:pointer;">Recusar</button>
+                    </td>
+                </tr>`;
+        });
+    } catch(e) { 
+        console.error("Erro ao carregar saques:", e);
+        tbody.innerHTML = "<tr><td colspan='4'>Erro ao conectar com o servidor.</td></tr>";
     }
-// Carregar VIPs na abertura da aba
-const originalTab = tab;
-tab = function(btn, id) {
-    originalTab(btn, id);
-    if(id === 'sec-vips') carregarVipsAdmin();
-}
+    }
 
 async function carregarVipsAdmin() {
     const container = document.getElementById('lista-vips-admin');
