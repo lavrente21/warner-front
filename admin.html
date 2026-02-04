@@ -269,15 +269,23 @@ function preencherFormVip(v) {
     window.scrollTo(0, 0);
 }
     async function processarSaque(id, status) {
-        if(!confirm(`Deseja ${status} este saque?`)) return;
-        try {
-            await fetch(`${API_URL}/api/admin/processar-saque`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ saque_id: id, status: status })
-            });
-            carregarLevantamentos();
-        } catch(e) { alert("Erro."); }
+    if(!confirm(`Deseja marcar este saque como ${status}?`)) return;
+    try {
+        const res = await fetch(`${API_URL}/api/admin/processar-saque`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ saque_id: id, status: status })
+        });
+        
+        if(res.ok) {
+            alert("Operação realizada com sucesso!");
+            carregarLevantamentos(); // Recarrega a lista
+        } else {
+            alert("Erro ao processar no servidor.");
+        }
+    } catch(e) { 
+        alert("Erro de conexão.");
+    }
     }
 
     // --- SISTEMA DE SUPORTE (CHAT REAL) ---
