@@ -441,14 +441,11 @@ function showPage(id, el) {
     }
 
     // 5. Roda as funções de carregar dados da API
-    if (id === 'pg-vip') carregarPlanosVIP();
-    if(pageId === 'pg-lar') {
-        carregarVipsHome(); // Carrega só 3
-    }
-    if(pageId === 'pg-vip') {
-        carregarPlanosVIP(); // Carrega todos
-    }
 
+if(id === 'pg-lar') { // Use 'id' em vez de 'pageId'
+    carregarVipsHome(); }
+if(id === 'pg-vip') {
+    carregarPlanosVIP();}
  if (id === 'pg-tarefa') carregarTarefasDoServidor();
     if (id === 'pg-meu') sincronizarDados();
 if (id === 'pg-historico') carregarHistoricoFinanceiro();
@@ -1143,16 +1140,13 @@ window.addEventListener('load', () => {
     if (!rawUser) {
         window.location.href = 'login.html';
     } else {
-        const user = JSON.parse(rawUser);
-        console.log("Usuário logado:", user);
-        
+        // Abre a home por padrão
         showPage('pg-lar'); 
         
-        // 1. Sincroniza os dados (saldo, nome)
-        sincronizarDados();
-
-        // 2. ADICIONE ESTA CHAMADA AQUI:
-        carregarTarefasDoServidor(); 
+        // Carrega os dados iniciais
+        sincronizarDados();      // Preenche nome e saldo
+        carregarVipsHome();      // Preenche os VIPs na Home
+        carregarTarefasDoServidor(); // Preenche as tarefas
     }
 });
 </script>
